@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connect OTP</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #101827;
+      color: white;
+      text-align: center;
+      padding: 25px;
+    }
+    input, button {
+      width: 90%;
+      padding: 14px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background: #1877f2;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>Connect</h2>
+  <h3>Mobile OTP Login</h3>
+
+  <input id="phone" placeholder="+91 Mobile Number">
+  <button onclick="sendOTP()">Send OTP</button>
+
+  <div id="recaptcha-container"></div>
+
+  <input id="otp" placeholder="Enter OTP">
+  <button onclick="verifyOTP()">Verify OTP</button>
+
+  <p id="status">Enter your mobile number</p>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdfQQyV9WtwK6IN_LlThRO1NYE37UnTog",
+      authDomain: "connect-49bfd.firebaseapp.com",
+      projectId: "connect-49bfd",
+      storageBucket: "connect-49bfd.firebasestorage.app",
+      messagingSenderId: "288101111081",
+      appId: "1:288101111081:web:7c468f06fc45843e9d5338",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    let confirmationResult;
+
+    window.onload = function() {
+      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+        'recaptcha-container',
+        { size: 'normal' }
+      );
+      recaptchaVerifier.render();
+    };
+
+    function sendOTP() {
+      const phone = document.getElementById("phone").value.trim();
+
+      auth.signInWithPhoneNumber(phone, recaptchaVerifier)
+        .then(result => {
+          confirmationResult = result;
+          document.getElementById("status").innerText = "OTP sent!";
+        })
+        .catch(error => {
+          document.getElementById("status").innerText = error.message;
+        });
+    }
+
+    function verifyOTP() {
+      const otp = document.getElementById("otp").value.trim();
+
+      confirmationResult.confirm(otp)
+        .then(result => {
+          document.getElementById("status").innerText = "Login successful!";
+          if (window.AppInventor) {
+            window.AppInventor.setWebViewString(
+              "OTP_VERIFIED:" + result.user.uid
+            );
+          }
+        })
+        .catch(error => {
+          document.getElementById("status").innerText = error.message;
+        });
+    }
+  </script>
+</body>
+    </html>
