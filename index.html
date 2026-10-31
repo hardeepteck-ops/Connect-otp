@@ -42,58 +42,81 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCdfQQyV9WtwK6IN_LlThRO1NYE37UnTog",
-      authDomain: "connect-49bfd.firebaseapp.com",
-      projectId: "connect-49bfd",
-      storageBucket: "connect-49bfd.firebasestorage.app",
-      messagingSenderId: "288101111081",
-      appId: "1:288101111081:web:7c468f06fc45843e9d5338",
-    };
+  
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCdfQQyV9WtwK6IN_LlThRO1NYE37UnTog",
+  authDomain: "connect-49bfd.firebaseapp.com",
+  projectId: "connect-49bfd",
+  storageBucket: "connect-49bfd.firebasestorage.app",
+  messagingSenderId: "288101111081",
+  appId: "1:288101111081:web:7c468f06fc45843e9d5338"
+};
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-    let confirmationResult;
+let confirmationResult;
+let recaptchaWidgetId;
 
-    window.onload = function() {
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
-        'recaptcha-container',
-        { size: 'normal' }
-      );
-      recaptchaVerifier.render();
-    };
+window.onload = async function () {
+  window.recaptchaVerifier =
+    new firebase.auth.RecaptchaVerifier(
+      'recaptcha-container',
+      { size: 'normal' }
+    );
 
-    function sendOTP() {
-      const phone = document.getElementById("phone").value.trim();
+  recaptchaWidgetId = await recaptchaVerifier.render();
+};
 
-      auth.signInWithPhoneNumber(phone, recaptchaVerifier)
-        .then(result => {
-          confirmationResult = result;
-          document.getElementById("status").innerText = "OTP sent!";
-        })
-        .catch(error => {
-          document.getElementById("status").innerText = error.message;
-        });
-    }
+function sendOTP() {
+  const phone = document.getElementById("phone").value.trim();
+  const status = document.getElementById("status");
 
-    function verifyOTP() {
-      const otp = document.getElementById("otp").value.trim();
+  if (!/^\+91[6-9]\d{9}$/.test(phone)) {
+    status.innerText = "Enter valid number with +91";
+    return;
+  }
 
-      confirmationResult.confirm(otp)
-        .then(result => {
-          document.getElementById("status").innerText = "Login successful!";
-          if (window.AppInventor) {
-            window.AppInventor.setWebViewString(
-              "OTP_VERIFIED:" + result.user.uid
-            );
-          }
-        })
-        .catch(error => {
-          document.getElementById("status").innerText = error.message;
-        });
-    }
-  </script>
+  status.innerText = "Sending OTP...";
+
+  auth.signInWithPhoneNumber(phone, recaptchaVerifier)
+    .then(result => {
+      confirmationResult = result;
+      status.innerText = "OTP sent successfully!";
+    })
+    .catch(error => {
+      status.innerText = error.message;
+
+      if (recaptchaWidgetId !== undefined) {
+        grecaptcha.reset(recaptchaWidgetId);
+      }
+    });
+}
+
+function verifyOTP() {
+  const otp = document.getElementById("otp").value.trim();
+  const status = document.getElementById("status");
+
+  if (!confirmationResult) {
+    status.innerText = "Please send OTP first";
+    return;
+  }
+
+  confirmationResult.confirm(otp)
+    .then(result => {
+      status.innerText = "Login successful!";
+
+      if (window.AppInventor) {
+        window.AppInventor.setWebViewString(
+          "OTP_VERIFIED:" + result.user.uid
+        );
+      }
+    })
+    .catch(error => {
+      status.innerText = error.message;
+    });
+}
+</script>
 </body>
-    </html>
+</html>
