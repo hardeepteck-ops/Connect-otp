@@ -1,17 +1,20 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Connect Login</title>
+
   <style>
     body {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       background: #101827;
       color: white;
       text-align: center;
       padding: 25px;
     }
+
     input, button {
       width: 90%;
       padding: 14px;
@@ -21,23 +24,35 @@
       font-size: 16px;
       box-sizing: border-box;
     }
+
     button {
       background: #1877f2;
       color: white;
       cursor: pointer;
     }
+
+    button:disabled {
+      opacity: 0.6;
+    }
+
     .google {
       background: white;
       color: #222;
     }
+
+    #status {
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
+
 <body>
 
   <h1>Connect</h1>
   <h3>Welcome Back!</h3>
 
-  <button class="google" onclick="googleLogin()">
+  <button class="google" id="googleButton"
+    onclick="googleLogin()">
     Continue with Google
   </button>
 
@@ -45,123 +60,278 @@
 
   <h3>Email Login / Signup</h3>
 
-  <input id="email" type="email" placeholder="Enter Email">
+  <input id="email" type="email"
+    placeholder="Enter Email" autocomplete="email">
 
   <input id="password" type="password"
-  placeholder="Enter Password">
+    placeholder="Enter Password"
+    autocomplete="current-password">
 
-  <button onclick="emailSignup()">Create Account</button>
+  <button id="signupButton" onclick="emailSignup()">
+    Create Account
+  </button>
 
-  <button onclick="emailLogin()">Login</button>
+  <button id="loginButton" onclick="emailLogin()">
+    Login
+  </button>
+
+  <button id="logoutButton" onclick="logout()" hidden>
+    Logout
+  </button>
 
   <p id="status">Welcome to Connect</p>
 
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <!-- Supabase Library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 
-  <script const SUPABASE_URL = "https://xiffckozfygnyqlgjoiq.supabase.co";
+  <script>
+    // SUPABASE CONFIGURATION
 
-const SUPABASE_KEY = "sb_publishable_Hi1hzrTbleJaDEWeQi1UvA_Y6yp8Co-";
+    const SUPABASE_URL =
+      "https://xiffckozfygnyqlgjoiq.supabase.co";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCdfQQyV9WtwK6IN_LlThRO1NYE37UnTog",
-      authDomain: "connect-49bfd.firebaseapp.com",
-      projectId: "connect-49bfd",
-      storageBucket: "connect-49bfd.firebasestorage.app",
-      messagingSenderId: "288101111081",
-      appId: "1:288101111081:web:7c468f06fc45843e9d5338"
-    };
+    const SUPABASE_KEY =
+      "sb_publishable_Hi1hzrTbleJaDEWeQi1UvA_Y6yp8Co-";
 
-    firebase.initializeApp(firebaseConfig);
-
-    const auth = firebase.auth();
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
 
     const status = document.getElementById("status");
 
+    const googleButton = document.getElementById("googleButton");
+    const signupButton = document.getElementById("signupButton");
+    const loginButton = document.getElementById("loginButton");
+    const logoutButton = document.getElementById("logoutButton");
+
+    // APP INVENTOR BRIDGE
+
+    function notifyAppInventor(userId) {
+      if (window.AppInventor && userId) {
+        window.AppInventor.setWebViewString(
+          "LOGIN_SUCCESS:" + userId
+        );
+      }
+    }
+
+    // SAVE USER PROFILE
+
+    async function saveProfile(user) {
+      if (!user) return;
+
+      const profile = {
+        id: user.id,
+        full_name:
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          null,
+        avatar_url:
+          user.user_metadata?.avatar_url ||
+          user.user_metadata?.picture ||
+          null
+      };
+
+      const { error } = await supabaseClient
+        .from("profiles")
+        .upsert(profile, { onConflict: "id" });
+
+      if (error) {
+        console.error("Profile Error:", error.message);
+      }
+    }
+
+    // UPDATE LOGIN SCREEN
+
+    function updateLoginScreen(user) {
+      if (user) {
+        status.innerText =
+          "Login Successful! Welcome to Connect";
+
+        logoutButton.hidden = false;
+
+        googleButton.hidden = true;
+        signupButton.hidden = true;
+        loginButton.hidden = true;
+
+        notifyAppInventor(user.id);
+      } else {
+        status.innerText = "Welcome to Connect";
+
+        logoutButton.hidden = true;
+
+        googleButton.hidden = false;
+        signupButton.hidden = false;
+        loginButton.hidden = false;
+      }
+    }
+
+    // GOOGLE LOGIN
+
     async function googleLogin() {
-  status.innerText = "Google Login हो रहा है...";
+      try {
+        status.innerText = "Opening Google Login...";
 
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: "https://hardeepteck-ops.github.io/Connect-otp/"
-    }
-  });
+        googleButton.disabled = true;
 
-  if (error) {
-    status.innerText = error.message;
-  }
+        const { error } =
+          await supabaseClient.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+              redirectTo:
+                "https://hardeepteck-ops.github.io/Connect-otp/"
+            }
+          });
+
+        if (error) {
+          status.innerText = error.message;
+          googleButton.disabled = false;
+        }
+
+      } catch (error) {
+        status.innerText = error.message;
+        googleButton.disabled = false;
+      }
     }
+
+    // EMAIL SIGNUP
 
     async function emailSignup() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+      const email =
+        document.getElementById("email").value.trim();
 
-  if (!email || !password) {
-    status.innerText = "Enter Email and Password";
-    return;
-  }
+      const password =
+        document.getElementById("password").value;
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email: email,
-    password: password
-  });
+      if (!email || !password) {
+        status.innerText = "Enter Email and Password";
+        return;
+      }
 
-  if (error) {
-    status.innerText = error.message;
-    return;
-  }
+      if (password.length < 6) {
+        status.innerText =
+          "Password must be at least 6 characters";
+        return;
+      }
 
-  if (data.session) {
-    status.innerText = "Account Created Successfully!";
+      try {
+        status.innerText = "Creating Account...";
+        signupButton.disabled = true;
 
-    if (window.AppInventor) {
-      window.AppInventor.setWebViewString(
-        "LOGIN_SUCCESS:" + data.user.id
-      );
+        const { data, error } =
+          await supabaseClient.auth.signUp({
+            email: email,
+            password: password
+          });
+
+        if (error) {
+          status.innerText = error.message;
+          return;
+        }
+
+        if (data.session && data.user) {
+          await saveProfile(data.user);
+          updateLoginScreen(data.user);
+        } else {
+          status.innerText =
+            "Account Created! Please check your email to verify.";
+        }
+
+      } catch (error) {
+        status.innerText = error.message;
+      } finally {
+        signupButton.disabled = false;
+      }
     }
-  } else {
-    status.innerText = "Account Created! Please check your email to verify.";
-  }
-    }
+
+    // EMAIL LOGIN
 
     async function emailLogin() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+      const email =
+        document.getElementById("email").value.trim();
 
-  if (!email || !password) {
-    status.innerText = "Enter Email and Password";
-    return;
-  }
+      const password =
+        document.getElementById("password").value;
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
+      if (!email || !password) {
+        status.innerText = "Enter Email and Password";
+        return;
+      }
 
-  if (error) {
-    status.innerText = error.message;
-    return;
-  }
+      try {
+        status.innerText = "Logging in...";
+        loginButton.disabled = true;
 
-  status.innerText = "Login Successful!";
+        const { data, error } =
+          await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+          });
 
-  if (window.AppInventor) {
-    window.AppInventor.setWebViewString(
-      "LOGIN_SUCCESS:" + data.user.id
-    );
-  }
-    }
-        .catch(error => {
+        if (error) {
           status.innerText = error.message;
-        });
+          return;
+        }
+
+        if (data.user) {
+          await saveProfile(data.user);
+          updateLoginScreen(data.user);
+        }
+
+      } catch (error) {
+        status.innerText = error.message;
+      } finally {
+        loginButton.disabled = false;
+      }
     }
+
+    // LOGOUT
+
+    async function logout() {
+      const { error } =
+        await supabaseClient.auth.signOut();
+
+      if (error) {
+        status.innerText = error.message;
+        return;
+      }
+
+      status.innerText = "Logged Out Successfully";
+
+      if (window.AppInventor) {
+        window.AppInventor.setWebViewString("LOGOUT_SUCCESS");
+      }
+
+      updateLoginScreen(null);
+    }
+
+    // AUTH SESSION LISTENER
+
+    supabaseClient.auth.onAuthStateChange(
+      (event, session) => {
+
+        if (session && session.user) {
+          const user = session.user;
+
+          updateLoginScreen(user);
+
+          // Profile save runs after the auth callback
+          setTimeout(() => {
+            saveProfile(user);
+          }, 0);
+
+        } else if (
+          event === "INITIAL_SESSION" ||
+          event === "SIGNED_OUT"
+        ) {
+          updateLoginScreen(null);
+        }
+
+      }
+    );
+
   </script>
 
 </body>
-</html>
+  </html>
+  
