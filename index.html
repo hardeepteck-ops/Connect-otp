@@ -2,336 +2,402 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Connect Login</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #101827;
-      color: white;
-      text-align: center;
-      padding: 25px;
-    }
-
-    input, button {
-      width: 90%;
-      padding: 14px;
-      margin: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-
-    button {
-      background: #1877f2;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.6;
-    }
-
-    .google {
-      background: white;
-      color: #222;
-    }
-
-    #status {
-      overflow-wrap: anywhere;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Connect - Social Media</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#171717;font-family:Arial,sans-serif}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+header{height:58px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;background:white;z-index:5}
+.logo{font-size:26px;font-weight:800;color:#1877f2}
+#auth{max-width:390px;margin:70px auto;padding:20px}
+#auth h1{text-align:center;color:#1877f2}
+input,textarea{width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:9px;outline:none}
+.primary{background:#1877f2;color:white;border:0;padding:12px;border-radius:9px;width:100%;font-weight:bold;margin-top:8px}
+.link{color:#1877f2;cursor:pointer;text-align:center;margin:15px}
+#app{display:none;padding-bottom:75px}
+.stories{display:flex;gap:14px;overflow-x:auto;padding:15px;border-bottom:7px solid #f7f7f7}
+.story{text-align:center;min-width:62px;font-size:12px}
+.story img{width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid #1877f2}
+.post{border-bottom:8px solid #f6f6f6;padding:13px 0}
+.posthead{display:flex;align-items:center;gap:10px;padding:0 13px}
+.avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#eee}
+.username{font-weight:bold}
+.postmedia{width:100%;max-height:520px;object-fit:contain;background:#111;margin-top:10px}
+.actions{display:flex;gap:20px;padding:12px 14px;font-size:23px}
+.actions button{border:0;background:none;font-size:22px}
+.caption{padding:0 14px;margin-bottom:8px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:10px 2px;z-index:10}
+.bottom button{border:0;background:none;font-size:22px}
+.bottom small{display:block;font-size:10px}
+.section{padding:15px;max-width:650px;margin:auto}
+.userrow{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #eee}
+.userrow button{margin-left:auto;width:auto;padding:9px 15px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.grid img,.grid video{width:100%;aspect-ratio:1;object-fit:cover}
+.profiletop{text-align:center;padding:20px}
+.profiletop img{width:90px;height:90px;border-radius:50%;object-fit:cover}
+.hidden{display:none!important}
+.muted{color:#888;font-size:13px}
+.empty{text-align:center;padding:40px;color:#888}
+</style>
 </head>
-
 <body>
-
-  <h1>Connect</h1>
-  <h3>Welcome Back!</h3>
-
-  <button class="google" id="googleButton"
-    onclick="googleLogin()">
-    Continue with Google
-  </button>
-
-  <hr>
-
-  <h3>Email Login / Signup</h3>
-
-  <input id="email" type="email"
-    placeholder="Enter Email" autocomplete="email">
-
-  <input id="password" type="password"
-    placeholder="Enter Password"
-    autocomplete="current-password">
-
-  <button id="signupButton" onclick="emailSignup()">
-    Create Account
-  </button>
-
-  <button id="loginButton" onclick="emailLogin()">
-    Login
-  </button>
-
-  <button id="logoutButton" onclick="logout()" hidden>
-    Logout
-  </button>
-
-  <p id="status">Welcome to Connect</p>
-
-  <!-- Supabase Library -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script>
-    // SUPABASE CONFIGURATION
-
-    const SUPABASE_URL =
-      "https://xiffckozfygnyqlgjoiq.supabase.co";
-
-    const SUPABASE_KEY =
-      "sb_publishable_Hi1hzrTbleJaDEWeQi1UvA_Y6yp8Co-";
-
-    const supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
-
-    const status = document.getElementById("status");
-
-    const googleButton = document.getElementById("googleButton");
-    const signupButton = document.getElementById("signupButton");
-    const loginButton = document.getElementById("loginButton");
-    const logoutButton = document.getElementById("logoutButton");
-
-    // APP INVENTOR BRIDGE
-
-    function notifyAppInventor(userId) {
-      if (window.AppInventor && userId) {
-        window.AppInventor.setWebViewString(
-          "LOGIN_SUCCESS:" + userId
-        );
-      }
-    }
-
-    // SAVE USER PROFILE
-
-    async function saveProfile(user) {
-      if (!user) return;
-
-      const profile = {
-        id: user.id,
-        full_name:
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          null,
-        avatar_url:
-          user.user_metadata?.avatar_url ||
-          user.user_metadata?.picture ||
-          null
-      };
-
-      const { error } = await supabaseClient
-        .from("profiles")
-        .upsert(profile, { onConflict: "id" });
-
-      if (error) {
-        console.error("Profile Error:", error.message);
-      }
-    }
-
-    // UPDATE LOGIN SCREEN
-
-    function updateLoginScreen(user) {
-      if (user) {
-        status.innerText =
-          "Login Successful! Welcome to Connect";
-
-        logoutButton.hidden = false;
-
-        googleButton.hidden = true;
-        signupButton.hidden = true;
-        loginButton.hidden = true;
-
-        notifyAppInventor(user.id);
-      } else {
-        status.innerText = "Welcome to Connect";
-
-        logoutButton.hidden = true;
-
-        googleButton.hidden = false;
-        signupButton.hidden = false;
-        loginButton.hidden = false;
-      }
-    }
-
-    // GOOGLE LOGIN
-
-    async function googleLogin() {
-      try {
-        status.innerText = "Opening Google Login...";
-
-        googleButton.disabled = true;
-
-        const { error } =
-          await supabaseClient.auth.signInWithOAuth({
-            provider: "google",
-            options: {
-              redirectTo:
-                "https://hardeepteck-ops.github.io/Connect-otp/"
-            }
-          });
-
-        if (error) {
-          status.innerText = error.message;
-          googleButton.disabled = false;
-        }
-
-      } catch (error) {
-        status.innerText = error.message;
-        googleButton.disabled = false;
-      }
-    }
-
-    // EMAIL SIGNUP
-
-    async function emailSignup() {
-      const email =
-        document.getElementById("email").value.trim();
-
-      const password =
-        document.getElementById("password").value;
-
-      if (!email || !password) {
-        status.innerText = "Enter Email and Password";
-        return;
-      }
-
-      if (password.length < 6) {
-        status.innerText =
-          "Password must be at least 6 characters";
-        return;
-      }
-
-      try {
-        status.innerText = "Creating Account...";
-        signupButton.disabled = true;
-
-        const { data, error } =
-          await supabaseClient.auth.signUp({
-            email: email,
-            password: password
-          });
-
-        if (error) {
-          status.innerText = error.message;
-          return;
-        }
-
-        if (data.session && data.user) {
-          await saveProfile(data.user);
-          updateLoginScreen(data.user);
-        } else {
-          status.innerText =
-            "Account Created! Please check your email to verify.";
-        }
-
-      } catch (error) {
-        status.innerText = error.message;
-      } finally {
-        signupButton.disabled = false;
-      }
-    }
-
-    // EMAIL LOGIN
-
-    async function emailLogin() {
-      const email =
-        document.getElementById("email").value.trim();
-
-      const password =
-        document.getElementById("password").value;
-
-      if (!email || !password) {
-        status.innerText = "Enter Email and Password";
-        return;
-      }
-
-      try {
-        status.innerText = "Logging in...";
-        loginButton.disabled = true;
-
-        const { data, error } =
-          await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: password
-          });
-
-        if (error) {
-          status.innerText = error.message;
-          return;
-        }
-
-        if (data.user) {
-          await saveProfile(data.user);
-          updateLoginScreen(data.user);
-        }
-
-      } catch (error) {
-        status.innerText = error.message;
-      } finally {
-        loginButton.disabled = false;
-      }
-    }
-
-    // LOGOUT
-
-    async function logout() {
-      const { error } =
-        await supabaseClient.auth.signOut();
-
-      if (error) {
-        status.innerText = error.message;
-        return;
-      }
-
-      status.innerText = "Logged Out Successfully";
-
-      if (window.AppInventor) {
-        window.AppInventor.setWebViewString("LOGOUT_SUCCESS");
-      }
-
-      updateLoginScreen(null);
-    }
-
-    // AUTH SESSION LISTENER
-
-    supabaseClient.auth.onAuthStateChange(
-      (event, session) => {
-
-        if (session && session.user) {
-          const user = session.user;
-
-          updateLoginScreen(user);
-
-          // Profile save runs after the auth callback
-          setTimeout(() => {
-            saveProfile(user);
-          }, 0);
-
-        } else if (
-          event === "INITIAL_SESSION" ||
-          event === "SIGNED_OUT"
-        ) {
-          updateLoginScreen(null);
-        }
-
-      }
-    );
-
-  </script>
-
+<header>
+<div class="logo">Connect</div>
+<button onclick="logout()" id="logoutBtn" class="hidden">Logout</button>
+</header>
+
+<div id="auth">
+<h1>Connect</h1>
+<p style="text-align:center">दुनिया से जुड़ें ❤️</p>
+<div id="loginBox">
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<button class="primary" onclick="login()">Login</button>
+<p class="link" onclick="showSignup()">नया अकाउंट बनाएं</p>
+</div>
+<div id="signupBox" class="hidden">
+<input id="newName" placeholder="आपका नाम">
+<input id="newUser" placeholder="Username">
+<input id="newEmail" type="email" placeholder="Email">
+<input id="newPass" type="password" placeholder="Password">
+<button class="primary" onclick="signup()">Sign Up</button>
+<p class="link" onclick="showLogin()">पहले से अकाउंट है? Login</p>
+</div>
+<p id="authMsg" class="muted"></p>
+</div>
+
+<div id="app">
+<div id="homePage">
+<div class="stories" id="stories">
+<div class="story">＋<br>Story</div>
+</div>
+<div id="feed"></div>
+</div>
+
+<div id="searchPage" class="section hidden">
+<h2>Search</h2>
+<input id="searchInput" placeholder="Username खोजें..." oninput="searchUsers()">
+<div id="searchResults"></div>
+</div>
+
+<div id="createPage" class="section hidden">
+<h2>Create Post</h2>
+<textarea id="caption" placeholder="आप क्या सोच रहे हैं?"></textarea>
+<input id="mediaFile" type="file" accept="image/*,video/*">
+<button class="primary" onclick="uploadPost()">Post Share करें</button>
+<p id="uploadMsg" class="muted"></p>
+</div>
+
+<div id="reelsPage" class="section hidden">
+<h2>Reels 🎬</h2>
+<div id="reelsFeed"></div>
+</div>
+
+<div id="profilePage" class="section hidden">
+<div id="profileContent"></div>
+</div>
+</div>
+
+<nav class="bottom hidden" id="nav">
+<button onclick="go('home')">🏠<small>Home</small></button>
+<button onclick="go('search')">🔍<small>Search</small></button>
+<button onclick="go('create')">➕<small>Create</small></button>
+<button onclick="go('reels')">🎬<small>Reels</small></button>
+<button onclick="go('profile')">👤<small>Profile</small></button>
+</nav>
+
+<script>
+const SUPABASE_URL = "https://xiffckozfygnyqlgjoiq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Hi1hzrTbleJaDEWeQi1UvA_Y6yp8Co-";
+
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let currentUser = null;
+let currentProfile = null;
+
+function msg(t){document.getElementById("authMsg").innerText=t}
+
+function showSignup(){
+ document.getElementById("loginBox").classList.add("hidden");
+ document.getElementById("signupBox").classList.remove("hidden");
+}
+
+function showLogin(){
+ document.getElementById("signupBox").classList.add("hidden");
+ document.getElementById("loginBox").classList.remove("hidden");
+}
+
+async function signup(){
+ const name=document.getElementById("newName").value.trim();
+ const username=document.getElementById("newUser").value.trim().toLowerCase();
+ const email=document.getElementById("newEmail").value.trim();
+ const password=document.getElementById("newPass").value;
+ if(!name||!username||!email||!password)return msg("सभी जानकारी भरें");
+ msg("Account बनाया जा रहा है...");
+ const {data,error}=await db.auth.signUp({
+  email,password,
+  options:{data:{full_name:name,username:username}}
+ });
+ if(error)return msg(error.message);
+ if(data.session){await startApp(data.session.user)}
+ else msg("Signup सफल! Email verify करके Login करें।");
+}
+
+async function login(){
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ msg("Login हो रहा है...");
+ const {data,error}=await db.auth.signInWithPassword({email,password});
+ if(error)return msg(error.message);
+ await startApp(data.user);
+}
+
+async function logout(){
+ await db.auth.signOut();
+ location.reload();
+}
+
+async function startApp(user){
+ currentUser=user;
+ document.getElementById("auth").classList.add("hidden");
+ document.getElementById("app").style.display="block";
+ document.getElementById("nav").classList.remove("hidden");
+ document.getElementById("logoutBtn").classList.remove("hidden");
+ await loadProfile();
+ await loadFeed();
+}
+
+async function loadProfile(){
+ const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
+ if(error){console.error(error);return}
+ currentProfile=data;
+ if(!data){
+  const username=currentUser.user_metadata?.username || currentUser.email.split("@")[0];
+  const {data:created,error:e}=await db.from("profiles").insert({
+   id:currentUser.id,
+   username,
+   full_name:currentUser.user_metadata?.full_name || username
+  }).select().single();
+  if(e){console.error(e);return}
+  currentProfile=created;
+ }
+}
+
+function go(page){
+ ["home","search","create","reels","profile"].forEach(p=>{
+  document.getElementById(p+"Page").classList.toggle("hidden",p!==page);
+ });
+ if(page==="home")loadFeed();
+ if(page==="reels")loadReels();
+ if(page==="profile")showProfile(currentUser.id);
+}
+
+async function loadFeed(){
+ const feed=document.getElementById("feed");
+ feed.innerHTML='<div class="empty">Loading...</div>';
+ const {data,error}=await db.from("posts").select("*, profiles(username,full_name,avatar_url)").order("created_at",{ascending:false}).limit(50);
+ if(error){feed.innerHTML='<div class="empty">Posts load नहीं हुए: '+error.message+'</div>';return}
+ feed.innerHTML=data.length?data.map(postHTML).join(""):'<div class="empty">अभी कोई पोस्ट नहीं है। पहली पोस्ट आप करें! ❤️</div>';
+ data.forEach(p=>countLikes(p.id));
+}
+
+function postHTML(p){
+ const profile=p.profiles||{};
+ const avatar=profile.avatar_url||"https://placehold.co/100";
+ const media=p.media_url||"";
+ const mediaHTML=p.media_type==="video"
+ ? `<video class="postmedia" src="${media}" controls playsinline></video>`
+ : `<img class="postmedia" src="${media}" alt="Post">`;
+ return `<article class="post">
+ <div class="posthead">
+ <img class="avatar" src="${avatar}">
+ <span class="username" onclick="showProfile('${p.user_id}')">${escapeHTML(profile.username||"User")}</span>
+ </div>
+ ${mediaHTML}
+ <div class="actions">
+ <button onclick="toggleLike('${p.id}')">❤️</button>
+ <button onclick="commentPost('${p.id}')">💬</button>
+ <button onclick="sharePost('${p.id}')">↗️</button>
+ </div>
+ <div class="caption"><b>${escapeHTML(profile.username||"User")}</b>
+ ${escapeHTML(p.caption||"")}
+ <p class="muted" id="likes-${p.id}">Likes देख रहे हैं...</p>
+ <button onclick="showComments('${p.id}')" style="border:0;background:none;color:#888">Comments देखें</button>
+ <div id="comments-${p.id}"></div>
+ </div></article>`;
+}
+
+function escapeHTML(s){
+ return String(s).replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+async function uploadPost(){
+ const file=document.getElementById("mediaFile").files[0];
+ const caption=document.getElementById("caption").value.trim();
+ const status=document.getElementById("uploadMsg");
+ if(!file)return status.innerText="पहले फोटो या वीडियो चुनें";
+ if(file.size>100*1024*1024)return status.innerText="File 100 MB से छोटी रखें";
+ status.innerText="Upload हो रहा है...";
+ const ext=file.name.split(".").pop();
+ const path=currentUser.id+"/"+Date.now()+"."+ext;
+ const {error:upError}=await db.storage.from("connect-media").upload(path,file,{upsert:false});
+ if(upError)return status.innerText=upError.message;
+ const {data:urlData}=db.storage.from("connect-media").getPublicUrl(path);
+ const media_type=file.type.startsWith("video/")?"video":"image";
+ const {error}=await db.from("posts").insert({
+  user_id:currentUser.id,
+  caption,
+  media_url:urlData.publicUrl,
+  media_type
+ });
+ if(error)return status.innerText=error.message;
+ status.innerText="पोस्ट सफलतापूर्वक शेयर हो गई! ❤️";
+ document.getElementById("caption").value="";
+ document.getElementById("mediaFile").value="";
+ go("home");
+}
+
+async function toggleLike(postId){
+ const {data:existing,error}=await db.from("likes").select("id").eq("post_id",postId).eq("user_id",currentUser.id).maybeSingle();
+ if(error)return alert(error.message);
+ if(existing){
+  const {error:e}=await db.from("likes").delete().eq("id",existing.id);
+  if(e)return alert(e.message);
+ }else{
+  const {error:e}=await db.from("likes").insert({post_id:postId,user_id:currentUser.id});
+  if(e)return alert(e.message);
+ }
+ countLikes(postId);
+}
+
+async function countLikes(id){
+ const {count,error}=await db.from("likes").select("*",{count:"exact",head:true}).eq("post_id",id);
+ if(!error){
+  const el=document.getElementById("likes-"+id);
+  if(el)el.innerText=(count||0)+" Likes";
+ }
+}
+
+async function commentPost(id){
+ const text=prompt("अपना Comment लिखें:");
+ if(!text||!text.trim())return;
+ const {error}=await db.from("comments").insert({post_id:id,user_id:currentUser.id,content:text.trim()});
+ if(error)return alert(error.message);
+ alert("Comment भेज दिया गया!");
+ showComments(id);
+}
+
+async function showComments(id){
+ const box=document.getElementById("comments-"+id);
+ if(!box)return;
+ const {data,error}=await db.from("comments").select("content,profiles(username)").eq("post_id",id).order("created_at",{ascending:true});
+ if(error)return box.innerText=error.message;
+ box.innerHTML=(data||[]).map(c=>`<p><b>${escapeHTML(c.profiles?.username||"User")}</b> ${escapeHTML(c.content)}</p>`).join("")||"अभी कोई Comment नहीं है";
+}
+
+function sharePost(id){
+ const url=location.href+"?post="+id;
+ if(navigator.share)navigator.share({title:"Connect Post",url});
+ else if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert("Link Copy हो गया"));
+ else prompt("Post link",url);
+}
+
+async function searchUsers(){
+ const q=document.getElementById("searchInput").value.trim();
+ const box=document.getElementById("searchResults");
+ if(q.length<2){box.innerHTML="कम से कम 2 अक्षर लिखें";return}
+ const {data,error}=await db.from("profiles").select("*").ilike("username","%"+q+"%").limit(20);
+ if(error)return box.innerText=error.message;
+ box.innerHTML=(data||[]).map(u=>`
+ <div class="userrow">
+ <img class="avatar" src="${u.avatar_url||"https://placehold.co/100"}">
+ <div><b>${escapeHTML(u.username||"User")}</b><br>
+ <small>${escapeHTML(u.full_name||"")}</small></div>
+ <button class="primary" onclick="showProfile('${u.id}')">View</button>
+ </div>`).join("")||"कोई User नहीं मिला";
+}
+
+async function loadReels(){
+ const box=document.getElementById("reelsFeed");
+ box.innerHTML='<div class="empty">Loading Reels...</div>';
+ const {data,error}=await db.from("posts").select("*,profiles(username,full_name,avatar_url)").eq("media_type","video").order("created_at",{ascending:false});
+ if(error)return box.innerText=error.message;
+ box.innerHTML=(data||[]).map(postHTML).join("")||'<div class="empty">अभी कोई Reel नहीं है।</div>';
+ (data||[]).forEach(p=>countLikes(p.id));
+}
+
+async function showProfile(id){
+ go("profile");
+ const box=document.getElementById("profileContent");
+ box.innerHTML="Loading Profile...";
+ const {data:u,error}=await db.from("profiles").select("*").eq("id",id).maybeSingle();
+ if(error||!u){box.innerHTML="Profile नहीं मिला";return}
+ const {data:posts}=await db.from("posts").select("*").eq("user_id",id).order("created_at",{ascending:false});
+ const {count:followers}=await db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",id);
+ const {count:following}=await db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",id);
+ const isMe=id===currentUser.id;
+ let isFollowing=false;
+ if(!isMe){
+  const {data:f}=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",id).maybeSingle();
+  isFollowing=!!f;
+ }
+ box.innerHTML=`
+ <div class="profiletop">
+ <img src="${u.avatar_url||"https://placehold.co/100"}">
+ <h2>${escapeHTML(u.full_name||u.username||"User")}</h2>
+ <p>@${escapeHTML(u.username||"user")}</p>
+ <p>${escapeHTML(u.bio||"")}</p>
+ <div><b>${posts?.length||0}</b> Posts　
+ <b>${followers||0}</b> Followers　
+ <b>${following||0}</b> Following</div>
+ ${isMe?'<button class="primary" onclick="editProfile()">Edit Profile</button>':
+ `<button class="primary" onclick="toggleFollow('${id}',${isFollowing})">${isFollowing?"Following":"Follow"}</button>`}
+ </div>
+ <div class="grid">${(posts||[]).map(p=>p.media_type==="video"?`<video src="${p.media_url}" controls></video>`:`<img src="${p.media_url}">`).join("")}</div>`;
+}
+
+async function toggleFollow(id,isFollowing){
+ let result;
+ if(isFollowing){
+  result=await db.from("follows").delete().eq("follower_id",currentUser.id).eq("following_id",id);
+ }else{
+  result=await db.from("follows").insert({follower_id:currentUser.id,following_id:id});
+ }
+ if(result.error)return alert(result.error.message);
+ showProfile(id);
+}
+
+async function editProfile(){
+ const name=prompt("अपना नाम",currentProfile?.full_name||"");
+ if(name===null)return;
+ const username=prompt("Username",currentProfile?.username||"");
+ if(username===null)return;
+ const bio=prompt("Bio लिखें",currentProfile?.bio||"");
+ if(bio===null)return;
+ const {error}=await db.from("profiles").update({
+  full_name:name,username:username.toLowerCase(),bio
+ }).eq("id",currentUser.id);
+ if(error)return alert(error.message);
+ await loadProfile();
+ showProfile(currentUser.id);
+}
+
+async function init(){
+ const {data:{session}}=await db.auth.getSession();
+ if(session)await startApp(session.user);
+}
+
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==="SIGNED_OUT")location.reload();
+});
+
+init();
+</script>
 </body>
-  </html>
-  
+</html>
