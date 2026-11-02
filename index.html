@@ -205,12 +205,13 @@ currentProfile=data;
 }
 
 function go(page){
-["home","search","create","reels","profile"].forEach(p=>{
-document.getElementById(p+"Page").classList.toggle("hidden",p!==page);
-});
-if(page==="home")loadFeed();
-if(page==="reels")loadReels();
-if(page==="profile")showProfile(currentUser.id);
+ ["home","search","create","reels","profile"].forEach(p=>{
+  document.getElementById(p+"Page").classList.toggle("hidden",p!==page);
+ });
+
+ if(page==="home") loadFeed();
+ if(page==="reels") loadReels();
+ if(page==="profile" && currentUser) showProfile(currentUser.id);
 }
 
 async function uploadFile(file,folder){
@@ -360,125 +361,112 @@ reelsFeed.innerHTML=(data||[]).map(postHTML).join("")||
 }
 
 async function showProfile(id){
-const box=document.getElementById("profileContent");
-box.innerHTML='<div class="empty">Profile Loading...</div>';
+ const box=document.getElementById("profileContent");
 
-const {data:u,error}=await db.from("profiles")
-.select("*").eq("id",id).maybeSingle();
-if(error||!u){box.innerText="Profile नहीं मिला";return}
+ ["home","search","create","reels","profile"].forEach(p=>{
+  document.getElementById(p+"Page").classList.toggle("hidden",p!=="profile");
+ });
 
-const {data:posts,error:postError}=await db.from("posts")
-.select("*").eq("user_id",id).order("created_at",{ascending:false});
-if(postError){box.innerText=postError.message;return}
+ box.innerHTML="Loading Profile...";
 
-const {count:followers}=await db.from("follows")
-.select("*",{count:"exact",head:true}).eq("following_id",id);
-const {count:following}=await db.from("follows")
-.select("*",{count:"exact",head:true}).eq("follower_id",id);
+ const {data:u,error}=await db.from("profiles")
+ .select("*").eq("id",id).maybeSingle();
 
-const me=id===currentUser.id;
-let isFollowing=false;
+ if(error||!u){
+  box.innerHTML="Profile नहीं मिला";
+  return;
+ }
 
-if(!me){
-const {data:f,error:e}=await db.from("follows")
-.select("id").eq("follower_id",currentUser.id)
-.eq("following_id",id).maybeSingle();
-if(e){box.innerText=e.message;return}
-isFollowing=!!f;
+ const {data:posts,error:postError}=await db.from("posts")
+ .select("*").eq("user_id",id)
+ .order("created_at",{ascending:false});
+
+ if(postError){
+  box.innerHTML=postError.message;
+  return;
+ }
+
+ const {count:followers}=await db.from("follows")
+ .select("*",{count:"exact",head:true})
+ .eq("following_id",id);
+
+ const {count:following}=await db.from("follows")
+ .select("*",{count:"exact",head:true})
+ .eq("follower_id",id);
+
+ const isMe=id===currentUser.id;
+ let isFollowing=false;
+
+ if(!isMe){
+  const {data:f,error:fError}=await db.from("follows")
+  .select("id")
+  .eq("follower_id",currentUser.id)
+  .eq("following_id",id)
+  .maybeSingle();
+
+  if(fError){
+   box.innerHTML=fError.message;
+   return;
+  }
+
+  isFollowing=!!f;
+ }
+
+ box.innerHTML=`
+ <div class="profiletop">
+ <img src="${u.avatar_url||"https://placehold.co/100"}">
+ <h2>${escapeHTML(u.full_name||u.username||"User")}</h2>
+ <p>@${escapeHTML(u.username||"user")}</p>
+ <p>${escapeHTML(u.bio||"")}</p>
+
+ <div>
+ <b>${posts?.length||0}</b> Posts　
+ <b>${followers||0}</b> Followers　
+ <b>${following||0}</b> Following
+ </div>
+
+ ${isMe
+ ? '<button class="primary" onclick="editProfile()">Edit Profile</button>'
+ : `<button class="primary" onclick="toggleFollow('${id}')">${isFollowing?"Following":"Follow"}</button>`
+ }
+ </div>
+
+ <div class="grid">
+ ${(posts||[]).map(p=>
+  p.media_type==="video"
+  ? `<video src="${p.media_url}" controls></video>`
+  : `<img src="${p.media_url}">`
+ ).join("")}
+ </div>`;
 }
 
-box.innerHTML=`
-<div class="profiletop">
-<img class="profilepic" src="${esc(u.avatar_url||"https://placehold.co/150")}">
-<h2>${esc(u.full_name||"User")}</h2>
-<p>@${esc(u.username||"user")}</p>
-<p>${esc(u.bio||"")}</p>
-<div class="stats">
-<div><b>${posts?.length||0}</b>Posts</div>
-<div><b>${followers||0}</b>Followers</div>
-<div><b>${following||0}</b>Following</div>
-</div>
-<div class="profilebuttons">
-${me?
-'<button class="primary" onclick="openEdit()">Edit Profile</button>':
-`<button class="primary" onclick="toggleFollow('${id}',${isFollowing})">${isFollowing?"Following":"Follow"}</button>`}
-</div>
-</div>
+async function toggleFollow(id){
+ if(!currentUser||id===currentUser.id)return;
 
-<div id="editBox" class="hidden">
-<h3>Edit Profile</h3>
-<label>Profile Photo</label>
-<input id="avatarFile" type="file" accept="image/*">
-<label>Full Name</label>
-<input id="editName" value="${esc(u.full_name||"")}">
-<label>Username</label>
-<input id="editUsername" value="${esc(u.username||"")}">
-<label>Bio</label>
-<textarea id="editBio" maxlength="150" placeholder="अपने बारे में लिखें...">${esc(u.bio||"")}</textarea>
-<button class="primary" style="width:100%" onclick="saveProfile()">Save Changes</button>
-<button onclick="closeEdit()" style="width:100%;padding:10px;margin-top:8px;border:1px solid #ddd;background:white;border-radius:8px">Cancel</button>
-<p id="editMsg" class="muted"></p>
-</div>
+ const {data:existing,error}=await db.from("follows")
+ .select("id")
+ .eq("follower_id",currentUser.id)
+ .eq("following_id",id)
+ .maybeSingle();
 
-<h3>Posts</h3>
-<div class="grid">
-${(posts||[]).map(p=>p.media_type==="video"
-?`<video src="${esc(p.media_url)}" controls></video>`
-:`<img src="${esc(p.media_url)}">`).join("")}
-</div>
-`;
-}
+ if(error)return alert(error.message);
 
-function openEdit(){
-document.getElementById("editBox").classList.remove("hidden");
-}
-function closeEdit(){
-document.getElementById("editBox").classList.add("hidden");
-}
+ if(existing){
+  const {error:e}=await db.from("follows")
+  .delete()
+  .eq("id",existing.id);
 
-async function saveProfile(){
-const status=document.getElementById("editMsg");
-const name=document.getElementById("editName").value.trim();
-const username=document.getElementById("editUsername").value.trim().toLowerCase();
-const bio=document.getElementById("editBio").value.trim();
-const file=document.getElementById("avatarFile").files[0];
+  if(e)return alert(e.message);
+ }else{
+  const {error:e}=await db.from("follows").insert({
+   follower_id:currentUser.id,
+   following_id:id
+  });
 
-if(!name||!username)return status.innerText="Name और Username जरूरी हैं";
-if(!/^[a-z0-9_.]{3,30}$/.test(username))return status.innerText="Username 3-30 अक्षर का रखें (a-z, 0-9, _ और .)";
-status.innerText="Saving...";
+  if(e)return alert(e.message);
+ }
 
-try{
-let avatar=currentProfile?.avatar_url||"";
-if(file)avatar=await uploadFile(file,"avatar");
-
-const {data,error}=await db.from("profiles").update({
-full_name:name,
-username,
-bio,
-avatar_url:avatar
-}).eq("id",currentUser.id).select().single();
-
-if(error)throw error;
-currentProfile=data;
-status.innerText="Profile Update हो गई ❤️";
-await showProfile(currentUser.id);
-}catch(e){
-status.innerText=e.message;
-}
-}
-
-async function toggleFollow(id,isFollowing){
-let result;
-if(isFollowing){
-result=await db.from("follows").delete()
-.eq("follower_id",currentUser.id).eq("following_id",id);
-}else{
-result=await db.from("follows").insert({
-follower_id:currentUser.id,following_id:id
-});
-}
-if(result.error)return alert(result.error.message);
-showProfile(id);
+ await showProfile(id);
 }
 
 async function init(){
