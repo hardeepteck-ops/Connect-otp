@@ -388,17 +388,18 @@ async function showProfile(id){
 
   box.innerHTML="Followers जानकारी लोड हो रही है...";
 
-  const {count:followers,error:e1}=await db.from("follows")
-   .select("*",{count:"exact",head:true})
-   .eq("following_id",id);
+const {data:followRows,error:followError}=await db.from("follows")
+ .select("follower_id,following_id");
 
-  if(e1) throw e1;
+if(followError) throw followError;
 
-  const {count:following,error:e2}=await db.from("follows")
-   .select("*",{count:"exact",head:true})
-   .eq("follower_id",id);
+const followers=(followRows||[]).filter(
+ f=>f.following_id===id
+).length;
 
-  if(e2) throw e2;
+const following=(followRows||[]).filter(
+ f=>f.follower_id===id
+).length;
 
   const isMe=id===currentUser.id;
   let isFollowing=false;
