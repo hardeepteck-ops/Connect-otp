@@ -6,639 +6,221 @@
 <title>Connect Social</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#fff;color:#171717;font-family:Arial,sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}header{height:60px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;background:#fff;z-index:5}.logo{font-size:27px;font-weight:800;color:#1877f2}.primary{background:#1877f2;color:#fff;border:0;padding:12px;border-radius:9px;font-weight:bold}.secondary{background:#f1f3f5;border:0;padding:10px 14px;border-radius:9px}input,textarea{width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:9px;outline:none}#auth{max-width:400px;margin:60px auto;padding:20px}#auth h1{text-align:center;color:#1877f2}#app{display:none;padding-bottom:80px}.hidden{display:none!important}.section{max-width:650px;margin:auto;padding:15px}.bottom{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:9px 0;z-index:10}.bottom button{background:none;border:0;font-size:22px}.bottom small{display:block;font-size:11px}.stories{display:flex;gap:15px;overflow:auto;padding:15px;border-bottom:7px solid #f7f7f7}.story{text-align:center;min-width:64px;font-size:12px;cursor:pointer}.story img{width:55px;height:55px;border-radius:50%;object-fit:cover;border:3px solid #1877f2}.story.add img{border:2px dashed #1877f2}.post{border-bottom:8px solid #f5f5f5;padding:12px 0}.posthead{display:flex;align-items:center;gap:10px;padding:0 13px}.avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#eee}.postmedia{width:100%;max-height:550px;object-fit:contain;background:#111;margin-top:10px}.actions{display:flex;gap:22px;padding:12px}.actions button{font-size:23px;border:0;background:none}.caption{padding:0 13px}.muted{color:#888;font-size:13px}.userrow{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #eee}.userrow button{margin-left:auto}.profiletop{text-align:center;padding:22px 10px}.profilepic{width:105px;height:105px;border-radius:50%;object-fit:cover;border:2px solid #eee}.stats{display:flex;justify-content:space-around;margin:20px 0}.stats div{text-align:center}.stats b{display:block;font-size:20px}.profilebuttons{display:flex;gap:10px;justify-content:center}.profilebuttons button{flex:1;max-width:180px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}.grid img,.grid video{width:100%;aspect-ratio:1;object-fit:cover}.empty{text-align:center;padding:35px;color:#888}.modal{position:fixed;inset:0;background:#0008;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}.modalcard{background:#fff;border-radius:15px;padding:18px;width:100%;max-width:440px;max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center}.modalhead button{border:0;background:none;font-size:24px}.preview{width:90px;height:90px;object-fit:cover;border-radius:50%;display:block;margin:8px auto}.storyview{background:#111;color:white;width:100%;max-width:430px;height:80vh;border-radius:14px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}.storyview img,.storyview video{width:100%;height:100%;object-fit:contain}.storytop{padding:12px;display:flex;justify-content:space-between;position:absolute;z-index:2;width:min(430px,calc(100% - 32px))}.storytop button{background:#222;color:#fff;border:0;border-radius:50%;padding:8px}.storymedia{height:100%;display:flex;align-items:center;justify-content:center}.storymedia img,.storymedia video{max-width:100%;max-height:100%}.inline{display:flex;gap:8px;align-items:center}.inline>*{flex:1}.notice{padding:12px;border-bottom:1px solid #eee}.filehint{font-size:12px;color:#777}
+:root{--blue:#1877f2;--line:#e8e8e8;--muted:#777;--bg:#fff;--soft:#f6f7f9}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#171717;font-family:Arial,sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}header{height:60px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;background:#fff;z-index:5}.logo{font-size:27px;font-weight:800;color:var(--blue)}.primary{background:var(--blue);color:#fff;border:0;padding:11px 15px;border-radius:9px;font-weight:bold}.secondary{background:#f1f3f5;border:0;padding:10px 14px;border-radius:9px}input,textarea{width:100%;padding:12px;margin:7px 0;border:1px solid #ddd;border-radius:9px;outline:none}textarea{min-height:80px;resize:vertical}#auth{max-width:400px;margin:45px auto;padding:20px}#auth h1{text-align:center;color:var(--blue)}#app{display:none;padding-bottom:82px}.hidden{display:none!important}.section{max-width:650px;margin:auto;padding:15px}.bottom{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #ddd;display:flex;justify-content:space-around;padding:8px 0;z-index:10}.bottom button{background:none;border:0;font-size:21px;min-width:42px}.bottom small{display:block;font-size:10px}.stories{display:flex;gap:15px;overflow:auto;padding:14px;border-bottom:7px solid #f7f7f7}.story{text-align:center;min-width:64px;font-size:12px;cursor:pointer}.story img{width:58px;height:58px;border-radius:50%;object-fit:cover;border:3px solid var(--blue)}.story.add img{border:2px dashed var(--blue)}.post{border-bottom:8px solid #f5f5f5;padding:12px 0}.posthead{display:flex;align-items:center;gap:10px;padding:0 13px}.avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;background:#eee}.postmedia{width:100%;max-height:550px;object-fit:contain;background:#111;margin-top:10px}.actions{display:flex;gap:22px;padding:10px 13px}.actions button{font-size:23px;border:0;background:none}.caption{padding:0 13px}.muted{color:#888;font-size:13px}.userrow{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #eee}.userrow button{margin-left:auto}.profiletop{text-align:center;padding:20px 10px}.profileavatar{width:105px;height:105px;border-radius:50%;object-fit:cover;border:2px solid #eee}.profilecounts{display:flex;justify-content:space-around;margin:18px 0}.profilecounts span{text-align:center}.profilecounts b{display:block;font-size:20px}.profilegrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:15px}.gridpost img,.gridpost video{width:100%;aspect-ratio:1;object-fit:cover}.empty{text-align:center;padding:35px;color:#888}.modal{position:fixed;inset:0;background:#0008;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}.modalcard{background:#fff;border-radius:15px;padding:18px;width:100%;max-width:440px;max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center}.modalhead button{border:0;background:none;font-size:24px}.preview{width:90px;height:90px;object-fit:cover;border-radius:50%;display:block;margin:8px auto}.storyview{background:#111;color:white;width:100%;max-width:430px;height:80vh;border-radius:14px;display:flex;flex-direction:column;overflow:hidden;position:relative}.storytop{padding:12px;display:flex;justify-content:space-between;position:absolute;z-index:2;width:100%}.storytop button{background:#222;color:#fff;border:0;border-radius:50%;padding:8px}.storymedia{height:100%;display:flex;align-items:center;justify-content:center}.storymedia img,.storymedia video{max-width:100%;max-height:100%;object-fit:contain}.filehint{font-size:12px;color:#777}.notice{padding:12px;border-bottom:1px solid #eee}.caption p{margin:7px 0}.linkbtn{border:0;background:none;color:var(--blue);padding:5px}
 </style>
 </head>
 <body>
 <header><div class="logo">Connect</div><button class="primary hidden" id="logoutBtn">Logout</button></header>
-
 <div id="auth">
 <h1>Connect</h1><p style="text-align:center">दुनिया से जुड़ें ❤️</p>
 <div id="loginBox"><input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password"><button class="primary" style="width:100%" id="loginBtn">Login</button><p id="toSignup" style="text-align:center;color:#1877f2;cursor:pointer">नया अकाउंट बनाएं</p></div>
-<div id="signupBox" class="hidden"><input id="newName" placeholder="आपका नाम"><input id="newUser" placeholder="Username"><input id="newEmail" type="email" placeholder="Email"><input id="newPass" type="password" placeholder="Password"><button class="primary" style="width:100%" id="signupBtn">Sign Up</button><p id="toLogin" style="text-align:center;color:#1877f2;cursor:pointer">Login करें</p></div>
-<p id="authMsg" class="muted"></p></div>
-
+<div id="signupBox" class="hidden"><input id="newName" placeholder="आपका नाम"><input id="newUser" placeholder="Username"><input id="newEmail" type="email" placeholder="Email"><input id="newPass" type="password" placeholder="Password"><button class="primary" style="width:100%" id="signupBtn">Sign Up</button><p id="toLogin" style="text-align:center;color:#1877f2;cursor:pointer">Login करें</p></div><p id="authMsg" class="muted"></p>
+</div>
 <div id="app">
 <div id="homePage"><div class="stories" id="storiesBar"></div><div id="feed"></div></div>
 <div id="searchPage" class="section hidden"><h2>Search People</h2><input id="searchInput" placeholder="Username खोजें..."><div id="searchResults"></div></div>
 <div id="createPage" class="section hidden"><h2>Create Post</h2><textarea id="caption" placeholder="आप क्या सोच रहे हैं?"></textarea><input id="mediaFile" type="file" accept="image/*,video/*"><div class="filehint">फोटो या वीडियो चुनें (अधिकतम 100 MB)</div><button class="primary" style="width:100%" id="sharePostBtn">Share Post</button><p id="uploadMsg" class="muted"></p></div>
-<div id="storyCreatePage" class="section hidden"><h2>अपनी Story डालें</h2><input id="storyFile" type="file" accept="image/*,video/*"><div class="filehint">Story 24 घंटे बाद अपने आप हट जाएगी। अधिकतम 100 MB</div><button class="primary" style="width:100%" id="shareStoryBtn">Share Story</button><p id="storyMsg" class="muted"></p></div>
+<div id="storyCreatePage" class="section hidden"><h2>अपनी Story डालें</h2><input id="storyFile" type="file" accept="image/*,video/*"><div class="filehint">Story 24 घंटे बाद expire होगी। अधिकतम 100 MB</div><button class="primary" style="width:100%" id="shareStoryBtn">Share Story</button><p id="storyMsg" class="muted"></p></div>
 <div id="reelsPage" class="section hidden"><h2>Reels 🎬</h2><div id="reelsFeed"></div></div>
 <div id="notificationsPage" class="section hidden"><h2>Notifications</h2><div id="notificationsList"></div></div>
 <div id="profilePage" class="section hidden"><div id="profileContent"></div></div>
 </div>
-
 <nav class="bottom hidden" id="nav">
 <button data-page="home">🏠<small>Home</small></button><button data-page="search">🔍<small>Search</small></button><button data-page="create">➕<small>Post</small></button><button data-page="reels">🎬<small>Reels</small></button><button data-page="profile">👤<small>Profile</small></button><button data-page="notifications">🔔<small>Alerts</small></button>
 </nav>
-
 <div id="editModal" class="modal hidden"><div class="modalcard"><div class="modalhead"><h3>Edit Profile</h3><button data-close="editModal">×</button></div><img id="editPreview" class="preview" src="https://placehold.co/100"><label>Profile Photo</label><input id="editPhoto" type="file" accept="image/*"><input id="editName" placeholder="Name"><input id="editUsername" placeholder="Username"><textarea id="editBio" placeholder="Bio"></textarea><button class="primary" style="width:100%" id="saveProfileBtn">Save Changes</button><p id="editMsg" class="muted"></p></div></div>
-
 <div id="storyModal" class="modal hidden"><div class="storyview"><div class="storytop"><span id="storyOwner"></span><button id="closeStory">✕</button></div><div id="storyMedia" class="storymedia"></div></div></div>
-
 <script>
 const SUPABASE_URL="https://xiffckozfygnyqlgjoiq.supabase.co";
 const SUPABASE_KEY="sb_publishable_Hi1hzrTbleJaDEWeQi1UvA_Y6yp8Co-";
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const $=id=>document.getElementById(id);
-let currentUser=null,currentProfile=null,viewingProfileId=null;
-
+let currentUser=null,currentProfile=null,activePage="home",feedBusy=false,feedCache=null,profileRequest=0;
+const placeholder="https://placehold.co/100";
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function authMsg(t){$("authMsg").innerText=t;}
+function msg(t){$("authMsg").innerText=t;}
 function showSignup(){$("loginBox").classList.add("hidden");$("signupBox").classList.remove("hidden");}
 function showLogin(){$("signupBox").classList.add("hidden");$("loginBox").classList.remove("hidden");}
-
-$("toSignup").onclick=showSignup;
-$("toLogin").onclick=showLogin;
-$("loginBtn").onclick=login;
-$("signupBtn").onclick=signup;
-$("logoutBtn").onclick=logout;
+$("toSignup").onclick=showSignup;$("toLogin").onclick=showLogin;
+$("loginBtn").onclick=login;$("signupBtn").onclick=signup;$("logoutBtn").onclick=logout;
 document.querySelectorAll(".bottom button").forEach(b=>b.onclick=()=>go(b.dataset.page));
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.add("hidden"));
 $("closeStory").onclick=()=>$("storyModal").classList.add("hidden");
-$("sharePostBtn").onclick=uploadPost;
-$("shareStoryBtn").onclick=uploadStory;
-$("saveProfileBtn").onclick=saveProfile;
+$("sharePostBtn").onclick=uploadPost;$("shareStoryBtn").onclick=uploadStory;$("saveProfileBtn").onclick=saveProfile;
 $("editPhoto").onchange=()=>{const f=$("editPhoto").files[0];if(f)$("editPreview").src=URL.createObjectURL(f);};
-$("searchInput").oninput=searchUsers;
-
+$("searchInput").oninput=debounce(searchUsers,350);
+function debounce(fn,wait){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),wait);};}
 async function signup(){
- const name=$("newName").value.trim();
- const username=$("newUser").value.trim().toLowerCase();
- const email=$("newEmail").value.trim();
- const pass=$("newPass").value;
- if(!name||!username||!email||!pass)return authMsg("सभी जानकारी भरें");
- authMsg("Account बनाया जा रहा है...");
- const {data,error}=await db.auth.signUp({email,password:pass,options:{data:{full_name:name,username}}});
- if(error)return authMsg(error.message);
- if(data.session)await startApp(data.user);
- else authMsg("Signup सफल! Email verify करके Login करें।");
+ const name=$("newName").value.trim(),username=$("newUser").value.trim().toLowerCase(),email=$("newEmail").value.trim(),password=$("newPass").value;
+ if(!name||!username||!email||!password)return msg("सभी जानकारी भरें");
+ msg("Account बनाया जा रहा है...");
+  const {data,error}=await db.auth.signUp({email,password,options:{data:{full_name:name,username}}});
+ if(error)return msg(error.message);
+ if(data.session)await startApp(data.user);else msg("Signup सफल! Email verify करके Login करें।");
 }
-
 async function login(){
- authMsg("Login हो रहा है...");
+ msg("Login हो रहा है...");
  const {data,error}=await db.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
- if(error)return authMsg(error.message);
+ if(error)return msg(error.message);
  await startApp(data.user);
 }
-
-async function logout(){
- await db.auth.signOut();
- location.reload();
-}
-
+async function logout(){await db.auth.signOut();location.reload();}
 async function startApp(user){
  currentUser=user;
- $("auth").classList.add("hidden");
- $("app").style.display="block";
- $("nav").classList.remove("hidden");
- $("logoutBtn").classList.remove("hidden");
- await loadProfile();
- await loadStories();
- go("home");
+ $("auth").classList.add("hidden");$("app").style.display="block";$("nav").classList.remove("hidden");$("logoutBtn").classList.remove("hidden");
+ await loadProfile();go("home");
 }
-
 async function loadProfile(){
  const {data,error}=await db.from("profiles").select("*").eq("id",currentUser.id).maybeSingle();
  if(error){alert("Profile: "+error.message);return;}
- if(!data){
-  const username=currentUser.user_metadata?.username||currentUser.email.split("@")[0];
-  const {data:created,error:e}=await db.from("profiles").insert({
-   id:currentUser.id,
-   username,
-   full_name:currentUser.user_metadata?.full_name||username,
-   bio:"",
-   avatar_url:""
-  }).select().single();
-  if(e){alert("Profile create error: "+e.message);return;}
-  currentProfile=created;
- }else{
-  currentProfile=data;
- }
+ if(data){currentProfile=data;return;}
+ const username=currentUser.user_metadata?.username||currentUser.email.split("@")[0];
+ const {data:created,error:e}=await db.from("profiles").insert({id:currentUser.id,username,full_name:currentUser.user_metadata?.full_name||username,bio:"",avatar_url:""}).select().single();
+ if(e){alert("Profile create error: "+e.message);return;}currentProfile=created;
 }
-
 function go(page){
- const pages=["home","search","create","storyCreate","reels","notifications","profile"];
- pages.forEach(p=>{
-  const el=$(p+"Page");
-  if(el)el.classList.toggle("hidden",p!==page);
- });
- if(page==="home"){loadFeed();loadStories();}
+ activePage=page;
+ ["home","search","create","storyCreate","reels","notifications","profile"].forEach(p=>{const el=$(p+"Page");if(el)el.classList.toggle("hidden",p!==page);});
+ if(page==="home"){loadStories();loadFeed();}
  if(page==="reels")loadReels();
  if(page==="profile")showProfile(currentUser.id);
  if(page==="notifications")loadNotifications();
 }
-
 async function uploadFile(file,folder){
- if(!file)throw new Error("File चुनें");
- if(file.size>100*1024*1024)throw new Error("File 100 MB से छोटी रखें");
+ if(!file)throw new Error("File चुनें");if(file.size>100*1024*1024)throw new Error("File 100 MB से छोटी रखें");
  const ext=(file.name.split(".").pop()||"bin").toLowerCase().replace(/[^a-z0-9]/g,"");
  const path=currentUser.id+"/"+folder+"_"+Date.now()+"_"+Math.random().toString(36).slice(2)+"."+ext;
- const {error}=await db.storage.from("connect-media").upload(path,file,{
-  upsert:false,
-  contentType:file.type||undefined
- });
- if(error)throw error;
- return db.storage.from("connect-media").getPublicUrl(path).data.publicUrl;
+ const {error}=await db.storage.from("connect-media").upload(path,file,{upsert:false,contentType:file.type||undefined});
+ if(error)throw error;return db.storage.from("connect-media").getPublicUrl(path).data.publicUrl;
 }
-
 async function uploadPost(){
- const file=$("mediaFile").files[0];
- if(!file)return $("uploadMsg").innerText="पहले फोटो या वीडियो चुनें";
- $("uploadMsg").innerText="Uploading...";
- try{
-  const url=await uploadFile(file,"post");
-  const type=file.type.startsWith("video/")?"video":"image";
-  const {error}=await db.from("posts").insert({
-   user_id:currentUser.id,
-   caption:$("caption").value.trim(),
-   media_url:url,
-   media_type:type
-  });
-  if(error)throw error;
-  $("caption").value="";
-  $("mediaFile").value="";
-  $("uploadMsg").innerText="Post Share हो गई ❤️";
-  go("home");
- }catch(e){
-  $("uploadMsg").innerText=e.message;
- }
+ const file=$("mediaFile").files[0];if(!file)return $("uploadMsg").innerText="पहले फोटो या वीडियो चुनें";
+ $("sharePostBtn").disabled=true;$("uploadMsg").innerText="Uploading...";
+ try{const url=await uploadFile(file,"post"),type=file.type.startsWith("video/")?"video":"image";
+ const {error}=await db.from("posts").insert({user_id:currentUser.id,caption:$("caption").value.trim(),media_url:url,media_type:type});
+ if(error)throw error;$("caption").value="";$("mediaFile").value="";$("uploadMsg").innerText="Post Share हो गई ❤️";feedCache=null;go("home");
+ }catch(e){$("uploadMsg").innerText=e.message;}finally{$("sharePostBtn").disabled=false;}
 }
-
 async function uploadStory(){
- const file=$("storyFile").files[0];
- if(!file)return $("storyMsg").innerText="पहले फोटो या वीडियो चुनें";
- $("storyMsg").innerText="Story Upload हो रही है...";
- try{
-  const url=await uploadFile(file,"story");
-  const type=file.type.startsWith("video/")?"video":"image";
-  const expires=new Date(Date.now()+24*60*60*1000).toISOString();
-  const {error}=await db.from("stories").insert({
-   user_id:currentUser.id,
-   media_url:url,
-   media_type:type,
-   expires_at:expires
-  });
-  if(error)throw error;
-  $("storyFile").value="";
-  $("storyMsg").innerText="Story लग गई ❤️";
-  go("home");
- }catch(e){
-  $("storyMsg").innerText=e.message;
- }
+ const file=$("storyFile").files[0];if(!file)return $("storyMsg").innerText="पहले फोटो या वीडियो चुनें";
+ $("shareStoryBtn").disabled=true;$("storyMsg").innerText="Story Upload हो रही है...";
+ try{const url=await uploadFile(file,"story"),type=file.type.startsWith("video/")?"video":"image";
+ const {error}=await db.from("stories").insert({user_id:currentUser.id,media_url:url,media_type:type,expires_at:new Date(Date.now()+86400000).toISOString()});
+ if(error)throw error;$("storyFile").value="";$("storyMsg").innerText="Story लग गई ❤️";go("home");
+ }catch(e){$("storyMsg").innerText=e.message;}finally{$("shareStoryBtn").disabled=false;}
 }
- async function loadStories(){
- const bar=$("storiesBar");
- if(!bar)return;
-
- const {data,error}=await db.from("stories")
- .select("*,profiles(username,avatar_url)")
- .gt("expires_at",new Date().toISOString())
- .order("created_at",{ascending:true}).limit(100);
-
- if(error){
-  bar.innerHTML='<div class="muted">Stories लोड नहीं हुईं: '+esc(error.message)+'</div>';
-  return;
- }
-
- const groups=new Map();
- (data||[]).forEach(s=>{
-  if(!groups.has(s.user_id))groups.set(s.user_id,s);
- });
-
- let html=`<div class="story add" onclick="go('storyCreate')">
- <img src="${esc(currentProfile?.avatar_url||"https://placehold.co/100")}">
- <div>Your Story ＋</div></div>`;
-
- for(const s of groups.values()){
-  const u=s.profiles||{};
-  html+=`<div class="story" onclick="openStory('${s.id}')">
-  <img src="${esc(u.avatar_url||"https://placehold.co/100")}">
-  <div>${esc(u.username||"Story")}</div></div>`;
- }
+async function loadStories(){
+  const bar=$("storiesBar");if(!bar)return;
+ const {data,error}=await db.from("stories").select("*,profiles(username,avatar_url)").gt("expires_at",new Date().toISOString()).order("created_at",{ascending:true}).limit(100);
+ if(error){bar.innerHTML='<span class="muted">Stories लोड नहीं हुईं: '+esc(error.message)+'</span>';return;}
+ const groups=new Map();(data||[]).forEach(s=>{if(!groups.has(s.user_id))groups.set(s.user_id,s);});
+ let html=`<div class="story add" onclick="go('storyCreate')"><img src="${esc(currentProfile?.avatar_url||placeholder)}"><div>Your Story ＋</div></div>`;
+ for(const s of groups.values()){const u=s.profiles||{};html+=`<div class="story" onclick="openStory('${s.id}')"><img src="${esc(u.avatar_url||placeholder)}"><div>${esc(u.username||"Story")}</div></div>`;}
  bar.innerHTML=html;
 }
-
 async function openStory(id){
- const {data,error}=await db.from("stories")
- .select("*,profiles(username)")
- .eq("id",id)
- .gt("expires_at",new Date().toISOString())
- .maybeSingle();
-
+ const {data,error}=await db.from("stories").select("*,profiles(username)").eq("id",id).gt("expires_at",new Date().toISOString()).maybeSingle();
  if(error||!data)return alert(error?.message||"Story expire हो गई");
-
  $("storyOwner").innerText=data.profiles?.username||"Story";
- $("storyMedia").innerHTML=data.media_type==="video"
- ?`<video src="${esc(data.media_url)}" controls autoplay playsinline></video>`
- :`<img src="${esc(data.media_url)}">`;
-
+ $("storyMedia").innerHTML=data.media_type==="video"?`<video src="${esc(data.media_url)}" controls autoplay playsinline></video>`:`<img src="${esc(data.media_url)}">`;
  $("storyModal").classList.remove("hidden");
 }
-
-async function loadFeed(){
- $("feed").innerHTML='<div class="empty">Loading...</div>';
-
- const {data,error}=await db.from("posts")
- .select("*,profiles(username,full_name,avatar_url)")
- .order("created_at",{ascending:false}).limit(50);
-
- if(error){
-  $("feed").innerText=error.message;
-  return;
- }
-
- $("feed").innerHTML=(data||[]).map(postHTML).join("")
- ||'<div class="empty">अभी कोई पोस्ट नहीं है।</div>';
-
- (data||[]).forEach(p=>countLikes(p.id));
+async function loadFeed(force=false){
+ if(feedBusy)return;if(feedCache&&!force){renderFeed(feedCache);return;}
+ feedBusy=true;
+ const {data,error}=await db.from("posts").select("*,profiles(username,full_name,avatar_url)").order("created_at",{ascending:false}).limit(50);
+ feedBusy=false;if(error){$("feed").innerText=error.message;return;}
+ feedCache=data||[];renderFeed(feedCache);
 }
-
+function renderFeed(posts){$("feed").innerHTML=posts.map(postHTML).join("")||'<div class="empty">अभी कोई पोस्ट नहीं है।</div>';posts.forEach(p=>countLikes(p.id));}
 function postHTML(p){
- const u=p.profiles||{};
- const media=p.media_type==="video"
- ?`<video class="postmedia" src="${esc(p.media_url)}" controls playsinline></video>`
- :`<img class="postmedia" src="${esc(p.media_url)}">`;
-
- return `<article class="post">
- <div class="posthead">
- <img class="avatar" src="${esc(u.avatar_url||"https://placehold.co/100")}">
- <b onclick="showProfile('${p.user_id}')" style="cursor:pointer">${esc(u.username||"User")}</b>
- </div>
- ${media}
- <div class="actions">
- <button onclick="toggleLike('${p.id}')">❤️</button>
- <button onclick="commentPost('${p.id}')">💬</button>
- <button onclick="sharePost('${p.id}')">↗️</button>
- </div>
- <div class="caption">
- <b>${esc(u.username||"User")}</b> ${esc(p.caption||"")}
- <p id="likes-${p.id}" class="muted">Likes...</p>
- <button onclick="showComments('${p.id}')" style="border:0;background:none;color:#888">Comments देखें</button>
- <div id="comments-${p.id}"></div>
- </div>
- </article>`;
+ const u=p.profiles||{},media=p.media_type==="video"?`<video class="postmedia" src="${esc(p.media_url)}" controls playsinline preload="metadata"></video>`:`<img class="postmedia" loading="lazy" src="${esc(p.media_url)}">`;
+ return `<article class="post"><div class="posthead"><img class="avatar" src="${esc(u.avatar_url||placeholder)}"><b onclick="showProfile('${p.user_id}')" style="cursor:pointer">${esc(u.username||"User")}</b></div>${media}<div class="actions"><button onclick="toggleLike('${p.id}')">❤️</button><button onclick="commentPost('${p.id}')">💬</button><button onclick="sharePost('${p.id}')">↗️</button></div><div class="caption"><b>${esc(u.username||"User")}</b> ${esc(p.caption||"")}<p id="likes-${p.id}" class="muted">Likes...</p><button onclick="showComments('${p.id}')" class="linkbtn">Comments देखें</button><div id="comments-${p.id}"></div></div></article>`;
 }
-
-async function countLikes(id){
- const {count,error}=await db.from("likes")
- .select("*",{count:"exact",head:true})
- .eq("post_id",id);
-
- const el=$("likes-"+id);
- if(!error&&el)el.innerText=(count||0)+" Likes";
-}
-
-async function notify(userId,type,postId=null){
- if(!userId||userId===currentUser.id)return;
-
- const {error}=await db.from("notifications").insert({
-  user_id:userId,
-  actor_id:currentUser.id,
-  type,
-  post_id:postId
- });
-
- if(error)console.warn("Notification not saved:",error.message);
-}
-
+async function countLikes(id){const {count,error}=await db.from("likes").select("*",{count:"exact",head:true}).eq("post_id",id);const el=$("likes-"+id);if(!error&&el)el.innerText=(count||0)+" Likes";}
+async function notify(userId,type,postId=null){if(!userId||userId===currentUser.id)return;const {error}=await db.from("notifications").insert({user_id:userId,actor_id:currentUser.id,type,post_id:postId});if(error)console.warn(error.message);}
 async function toggleLike(id){
- const {data,error}=await db.from("likes")
- .select("id")
- .eq("post_id",id)
- .eq("user_id",currentUser.id)
- .maybeSingle();
-
- if(error)return alert(error.message);
-
- if(data){
-  const {error:e}=await db.from("likes").delete().eq("id",data.id);
-  if(e)return alert(e.message);
- }else{
-  const {error:e}=await db.from("likes").insert({
-   post_id:id,
-   user_id:currentUser.id
-  });
-  if(e)return alert(e.message);
-
-  const {data:p}=await db.from("posts").select("user_id").eq("id",id).maybeSingle();
-  if(p)await notify(p.user_id,"like",id);
- }
-
+ const {data,error}=await db.from("likes").select("id").eq("post_id",id).eq("user_id",currentUser.id).maybeSingle();if(error)return alert(error.message);
+ if(data){const {error:e}=await db.from("likes").delete().eq("id",data.id);if(e)return alert(e.message);}
+ else{const {error:e}=await db.from("likes").insert({post_id:id,user_id:currentUser.id});if(e)return alert(e.message);const {data:p}=await db.from("posts").select("user_id").eq("id",id).maybeSingle();if(p)await notify(p.user_id,"like",id);}
  countLikes(id);
 }
-
 async function commentPost(id){
- const text=prompt("Comment लिखें");
- if(!text?.trim())return;
-
- const {error}=await db.from("comments").insert({
-  post_id:id,
-  user_id:currentUser.id,
-  content:text.trim()
- });
-
- if(error)return alert(error.message);
-
- const {data:p}=await db.from("posts").select("user_id").eq("id",id).maybeSingle();
- if(p)await notify(p.user_id,"comment",id);
-
- showComments(id);
+ const content=prompt("Comment लिखें");if(!content?.trim())return;
+ const {error}=await db.from("comments").insert({post_id:id,user_id:currentUser.id,content:content.trim()});if(error)return alert(error.message);
+ const {data:p}=await db.from("posts").select("user_id").eq("id",id).maybeSingle();if(p)await notify(p.user_id,"comment",id);showComments(id);
 }
-
 async function showComments(id){
- const box=$("comments-"+id);
- if(!box)return;
-
- const {data,error}=await db.from("comments")
- .select("content,profiles(username)")
- .eq("post_id",id)
- .order("created_at");
-
+ const box=$("comments-"+id);if(!box)return;
+ const {data,error}=await db.from("comments").select("content,profiles(username)").eq("post_id",id).order("created_at");
  if(error)return box.innerText=error.message;
-
- box.innerHTML=(data||[]).map(c=>
- `<p><b>${esc(c.profiles?.username||"User")}</b> ${esc(c.content)}</p>`
- ).join("")||"अभी कोई Comment नहीं है";
+ box.innerHTML=(data||[]).map(c=>`<p><b>${esc(c.profiles?.username||"User")}</b> ${esc(c.content)}</p>`).join("")||"अभी कोई Comment नहीं है";
 }
-
-function sharePost(id){
- const url=location.origin+location.pathname+"?post="+id;
-
- if(navigator.share){
-  navigator.share({title:"Connect",url}).catch(()=>{});
- }else if(navigator.clipboard){
-  navigator.clipboard.writeText(url).then(()=>alert("Link Copy हो गया"));
- }else{
-  prompt("Post Link",url);
- }
-}
-
+function sharePost(id){const url=location.origin+location.pathname+"?post="+id;if(navigator.share)navigator.share({title:"Connect",url}).catch(()=>{});else if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>alert("Link Copy हो गया"));else prompt("Post Link",url);}
 async function searchUsers(){
- const q=$("searchInput").value.trim();
-
- if(q.length<2){
-  $("searchResults").innerHTML="कम से कम 2 अक्षर लिखें";
-  return;
- }
-
- const {data,error}=await db.from("profiles")
- .select("*")
- .ilike("username","%"+q+"%").limit(20);
-
- if(error)return $("searchResults").innerText=error.message;
-
- $("searchResults").innerHTML=(data||[]).map(u=>
- `<div class="userrow">
- <img class="avatar" src="${esc(u.avatar_url||"https://placehold.co/100")}">
- <div><b>${esc(u.username)}</b><br><small>${esc(u.full_name||"")}</small></div>
- <button class="primary" onclick="showProfile('${u.id}')">View</button>
- </div>`
- ).join("")||"कोई User नहीं मिला";
+ const q=$("searchInput").value.trim();if(q.length<2){$("searchResults").innerHTML="कम से कम 2 अक्षर लिखें";return;}
+ const {data,error}=await db.from("profiles").select("*").ilike("username","%"+q+"%").limit(20);if(error)return $("searchResults").innerText=error.message;
+ $("searchResults").innerHTML=(data||[]).map(u=>`<div class="userrow"><img class="avatar" src="${esc(u.avatar_url||placeholder)}"><div><b>${esc(u.username)}</b><br><small>${esc(u.full_name||"")}</small></div><button class="primary" onclick="showProfile('${u.id}')">View</button></div>`).join("")||"कोई User नहीं मिला";
 }
-
 async function loadReels(){
- const {data,error}=await db.from("posts")
- .select("*,profiles(username,full_name,avatar_url)")
- .eq("media_type","video")
- .order("created_at",{ascending:false});
-
+ const {data,error}=await db.from("posts").select("*,profiles(username,full_name,avatar_url)").eq("media_type","video").order("created_at",{ascending:false});
  if(error)return $("reelsFeed").innerText=error.message;
-
- $("reelsFeed").innerHTML=(data||[]).map(postHTML).join("")
- ||'<div class="empty">अभी कोई Reel नहीं है।</div>';
-
- (data||[]).forEach(p=>countLikes(p.id));
- }
- async function showProfile(userId=currentUser.id){
- const id=userId||currentUser.id;
- const isMe=id===currentUser.id;
-
- const {data:user,error}=await db.from("profiles")
- .select("*").eq("id",id).maybeSingle();
-
- if(error||!user){
-  alert(error?.message||"Profile नहीं मिली");
-  return;
- }
-
- currentProfile=isMe?user:currentProfile;
-
- const {count:postsCount}=await db.from("posts")
- .select("*",{count:"exact",head:true}).eq("user_id",id);
-
- const {count:followers}=await db.from("follows")
- .select("*",{count:"exact",head:true}).eq("following_id",id);
-
- const {count:following}=await db.from("follows")
- .select("*",{count:"exact",head:true}).eq("follower_id",id);
-
- let followed=false;
- if(!isMe){
-  const {data:f}=await db.from("follows").select("id")
-  .eq("follower_id",currentUser.id)
-  .eq("following_id",id).maybeSingle();
-  followed=!!f;
- }
-
- $("profileContent").innerHTML=`
- <div class="profiletop">
-  <img class="profileavatar" src="${esc(user.avatar_url||"https://placehold.co/150")}">
-  <div>
-   <h2>${esc(user.username||"User")}</h2>
-   <p>${esc(user.full_name||"")}</p>
-  </div>
- </div>
- <div class="profilecounts">
-  <span><b>${postsCount||0}</b> Posts</span>
-  <span><b>${followers||0}</b> Followers</span>
-  <span><b>${following||0}</b> Following</span>
- </div>
- <p>${esc(user.bio||"")}</p>
- ${isMe
-  ?`<button class="primary" onclick="openEditProfile()">Edit Profile</button>`
-  :`<button class="primary" onclick="toggleFollow('${id}')">${followed?"Following":"Follow"}</button>`}
- <div id="userPosts" class="profilegrid"></div>`;
-
- go("profile");
-
- const {data:posts}=await db.from("posts")
- .select("*").eq("user_id",id)
- .order("created_at",{ascending:false});
-
- $("userPosts").innerHTML=(posts||[]).map(p=>
- `<div class="gridpost" onclick="showProfilePost('${p.id}')">
- ${p.media_type==="video"
- ?`<video src="${esc(p.media_url)}"></video>`
- :`<img src="${esc(p.media_url)}">`}
- </div>`
- ).join("")||'<p class="muted">अभी कोई पोस्ट नहीं है।</p>';
+ $("reelsFeed").innerHTML=(data||[]).map(postHTML).join("")||'<div class="empty">अभी कोई Reel नहीं है।</div>';(data||[]).forEach(p=>countLikes(p.id));
 }
-
-async function showProfilePost(id){
- const {data:p,error}=await db.from("posts")
- .select("*,profiles(username,full_name,avatar_url)")
- .eq("id",id).maybeSingle();
-
- if(error||!p)return alert(error?.message||"Post नहीं मिली");
-
- $("feed").innerHTML=postHTML(p);
- countLikes(id);
- go("home");
+ }
+async function showProfile(userId=currentUser.id){
+ const id=userId||currentUser.id,request=++profileRequest,isMe=id===currentUser.id;
+ const {data:user,error}=await db.from("profiles").select("*").eq("id",id).maybeSingle();
+ if(request!==profileRequest)return;if(error||!user)return alert(error?.message||"Profile नहीं मिली");
+ const [{count:postsCount},{count:followers},{count:following}]=await Promise.all([
+ db.from("posts").select("*",{count:"exact",head:true}).eq("user_id",id),
+ db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",id),
+ db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",id)]);
+ let followed=false;if(!isMe){const {data:f}=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",id).maybeSingle();followed=!!f;}
+ viewingProfileId=id;if(isMe)currentProfile=user;
+ $("profileContent").innerHTML=`<div class="profiletop"><img class="profileavatar" src="${esc(user.avatar_url||placeholder)}"><h2>${esc(user.username||"User")}</h2><p>${esc(user.full_name||"")}</p></div><div class="profilecounts"><span><b>${postsCount||0}</b>Posts</span><span><b>${followers||0}</b>Followers</span><span><b>${following||0}</b>Following</span></div><p>${esc(user.bio||"")}</p><div class="profilebuttons">${isMe?'<button class="secondary" onclick="openEditProfile()">Edit Profile</button>':`<button class="primary" onclick="toggleFollow('${id}')">${followed?"Following":"Follow"}</button>`}</div><div id="userPosts" class="profilegrid"></div>`;
+ $("profilePage").classList.remove("hidden");["home","search","create","storyCreate","reels","notifications"].forEach(p=>$(p+"Page").classList.add("hidden"));activePage="profile";
+ const {data:posts,error:e}=await db.from("posts").select("*").eq("user_id",id).order("created_at",{ascending:false});if(request!==profileRequest)return;if(e)return $("userPosts").innerText=e.message;
+ $("userPosts").innerHTML=(posts||[]).map(p=>`<div class="gridpost" onclick="showProfilePost('${p.id}')">${p.media_type==="video"?`<video src="${esc(p.media_url)}"></video>`:`<img loading="lazy" src="${esc(p.media_url)}">`}</div>`).join("")||'<p class="muted">अभी कोई पोस्ट नहीं है।</p>';
 }
-
+async function showProfilePost(id){const {data:p,error}=await db.from("posts").select("*,profiles(username,full_name,avatar_url)").eq("id",id).maybeSingle();if(error||!p)return alert(error?.message||"Post नहीं मिली");$("feed").innerHTML=postHTML(p);countLikes(id);go("home");}
 async function toggleFollow(id){
- const {data:existing,error}=await db.from("follows")
- .select("id")
- .eq("follower_id",currentUser.id)
- .eq("following_id",id).maybeSingle();
-
- if(error)return alert(error.message);
-
- if(existing){
-  const {error:e}=await db.from("follows").delete()
-  .eq("id",existing.id);
-  if(e)return alert(e.message);
- }else{
-  const {error:e}=await db.from("follows").insert({
-   follower_id:currentUser.id,
-   following_id:id
-  });
-  if(e)return alert(e.message);
-  await notify(id,"follow");
- }
-
+ if(id===currentUser.id)return;
+ const {data:existing,error}=await db.from("follows").select("id").eq("follower_id",currentUser.id).eq("following_id",id).maybeSingle();if(error)return alert(error.message);
+ if(existing){const {error:e}=await db.from("follows").delete().eq("id",existing.id);if(e)return alert(e.message);}
+ else{const {error:e}=await db.from("follows").insert({follower_id:currentUser.id,following_id:id});if(e)return alert(e.message);await notify(id,"follow");}
  await showProfile(id);
 }
-
 function openEditProfile(){
- const p=currentProfile||{};
- $("editFullName").value=p.full_name||"";
- $("editUsername").value=p.username||"";
- $("editBio").value=p.bio||"";
- $("editAvatar").value="";
- $("editProfileModal").classList.remove("hidden");
+ const p=currentProfile||{};$("editName").value=p.full_name||"";$("editUsername").value=p.username||"";$("editBio").value=p.bio||"";$("editPhoto").value="";$("editPreview").src=p.avatar_url||placeholder;$("editMsg").innerText="";$("editModal").classList.remove("hidden");
 }
-
 async function saveProfile(){
- const full_name=$("editFullName").value.trim();
- const username=$("editUsername").value.trim();
- const bioText=$("editBio").value.trim();
- const file=$("editAvatar").files[0];
-
- if(!username)return alert("Username लिखें");
-
- let avatar_url=currentProfile?.avatar_url||null;
-
- if(file){
-  if(file.size>100*1024*1024)return alert("Photo 100 MB से बड़ी है");
-
-  const ext=file.name.split(".").pop();
-  const path=`avatars/${currentUser.id}_${Date.now()}.${ext}`;
-
-  const {error:uploadError}=await db.storage
-  .from("connect-media").upload(path,file,{upsert:true});
-
-  if(uploadError)return alert(uploadError.message);
-
-  const {data:urlData}=db.storage.from("connect-media").getPublicUrl(path);
-  avatar_url=urlData.publicUrl;
- }
-
- const {data,error}=await db.from("profiles").update({
-  full_name,
-  username,
-  bio:bioText,
-  avatar_url
- }).eq("id",currentUser.id).select().single();
-
- if(error)return alert(error.message);
-
- currentProfile=data;
- $("editProfileModal").classList.add("hidden");
- await showProfile(currentUser.id);
- alert("Profile अपडेट हो गई!");
+ const full_name=$("editName").value.trim(),username=$("editUsername").value.trim().toLowerCase(),bio=$("editBio").value.trim(),file=$("editPhoto").files[0];
+ if(!username)return $("editMsg").innerText="Username लिखें";
+ $("saveProfileBtn").disabled=true;$("editMsg").innerText="Saving...";
+ try{let avatar_url=currentProfile?.avatar_url||"";
+ if(file)avatar_url=await uploadFile(file,"avatar");
+ const {data,error}=await db.from("profiles").update({full_name,username,bio,avatar_url}).eq("id",currentUser.id).select().single();if(error)throw error;
+ currentProfile=data;$("editModal").classList.add("hidden");await showProfile(currentUser.id);
+ }catch(e){$("editMsg").innerText=e.message;}finally{$("saveProfileBtn").disabled=false;}
 }
-
 async function loadNotifications(){
- const box=$("notificationsList");
- if(!box)return;
-
- const {data,error}=await db.from("notifications")
- .select("*").eq("user_id",currentUser.id)
- .order("created_at",{ascending:false}).limit(50);
-
- if(error){
-  box.innerText=error.message;
-  return;
- }
-
- if(!data?.length){
-  box.innerHTML='<p class="muted">अभी कोई Notification नहीं है।</p>';
-  return;
- }
-
- const actorIds=[...new Set(data.map(n=>n.actor_id))];
- const {data:users}=await db.from("profiles")
- .select("id,username").in("id",actorIds);
-
- const names={};
- (users||[]).forEach(u=>names[u.id]=u.username);
-
- box.innerHTML=data.map(n=>{
-  const action={
-   like:"ने आपकी Post Like की",
-   comment:"ने आपकी Post पर Comment किया",
-   follow:"ने आपको Follow किया"
-  }[n.type]||"ने आपके साथ Interaction किया";
-
-  return `<div class="notification">
-  <b>${esc(names[n.actor_id]||"User")}</b> ${action}
-  </div>`;
- }).join("");
+ const box=$("notificationsList");const {data,error}=await db.from("notifications").select("*").eq("user_id",currentUser.id).order("created_at",{ascending:false}).limit(50);
+ if(error){box.innerText=error.message;return;}if(!data?.length){box.innerHTML='<p class="muted">अभी कोई Notification नहीं है।</p>';return;}
+ const ids=[...new Set(data.map(n=>n.actor_id))];const {data:users}=await db.from("profiles").select("id,username").in("id",ids);const names={};(users||[]).forEach(u=>names[u.id]=u.username);
+ box.innerHTML=data.map(n=>`<div class="notice"><b>${esc(names[n.actor_id]||"User")}</b> ${{like:"ने आपकी Post Like की",comment:"ने आपकी Post पर Comment किया",follow:"ने आपको Follow किया"}[n.type]||"ने Interaction किया"}</div>`).join("");
 }
-
+let starting=false;
 async function init(){
- const {data:{session},error}=await db.auth.getSession();
-
- if(error)console.error(error);
-
- if(!session){
-  go("auth");
-  return;
- }
-
- currentUser=session.user;
-
- const {data:profile}=await db.from("profiles")
- .select("*").eq("id",currentUser.id).maybeSingle();
-
- currentProfile=profile;
-
- if(!profile){
-  const username=(currentUser.email||"user").split("@")[0];
-  const {data:newProfile,error:profileError}=await db.from("profiles")
-  .insert({
-   id:currentUser.id,
-   username,
-   full_name:username
-  }).select().single();
-
-  if(profileError){
-   console.error(profileError);
-   alert("Profile बनाने में समस्या: "+profileError.message);
-   return;
-  }
-  currentProfile=newProfile;
- }
-
- go("home");
- await Promise.allSettled([
-  loadStories(),
-  loadFeed()
- ]);
+ if(starting)return;starting=true;
+ const {data:{session},error}=await db.auth.getSession();if(error)console.error(error);
+ if(session)await startApp(session.user);else{$("auth").classList.remove("hidden");$("app").style.display="none";$("nav").classList.add("hidden");}
+ starting=false;
 }
-
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==="SIGNED_OUT"){currentUser=null;$("app").style.display="none";$("nav").classList.add("hidden");$("logoutBtn").classList.add("hidden");$("auth").classList.remove("hidden");}
+});
 init();
 </script>
 </body>
