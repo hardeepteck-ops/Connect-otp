@@ -449,7 +449,7 @@ async function showProfile(id) {
         <div class="profilebuttons">
           ${
             isMe
-              ? '<button class="primary" onclick="alert(\'Edit Profile बाद में जोड़ेंगे\')">Edit Profile</button>'
+              ? '<button class="primary" onclick="editProfile()">Edit Profile</button>'
               : `<button class="primary" onclick="toggleFollow('${id}')">
                    ${isFollowing ? "Following" : "Follow"}
                  </button>`
@@ -473,7 +473,53 @@ async function showProfile(id) {
     box.innerHTML = "Profile Error: " + esc(error.message || String(error));
   }
 }
+async function editProfile() {
+  try {
+    const { data: profile, error } = await db
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .maybeSingle();
 
+    if (error) throw error;
+    if (!profile) throw new Error("Profile नहीं मिली");
+
+    const fullName = prompt("अपना नाम लिखें:", profile.full_name || "");
+    if (fullName === null) return;
+
+    const username = prompt("अपना Username लिखें:", profile.username || "");
+    if (username === null) return;
+
+    const bio = prompt("अपना Bio लिखें:", profile.bio || "");
+    if (bio === null) return;
+
+    const avatar = prompt(
+      "Profile Photo का Image URL लिखें:",
+      profile.avatar_url || ""
+    );
+    if (avatar === null) return;
+
+    const { error: updateError } = await db
+      .from("profiles")
+      .update({
+        full_name: fullName.trim(),
+        username: username.trim(),
+        bio: bio.trim(),
+        avatar_url: avatar.trim()
+      })
+      .eq("id", currentUser.id);
+
+    if (updateError) throw updateError;
+
+    alert("Profile सफलतापूर्वक अपडेट हो गई!");
+
+    await showProfile(currentUser.id);
+
+  } catch (error) {
+    console.error("Edit Profile Error:", error);
+    alert("Profile अपडेट नहीं हुई: " + error.message);
+  }
+     }
 async function toggleFollow(id){
  if(!currentUser||id===currentUser.id)return;
 
