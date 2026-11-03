@@ -168,7 +168,6 @@ async function loadReels(){
  if(error)return $("reelsFeed").innerText=error.message;
  $("reelsFeed").innerHTML=(data||[]).map(postHTML).join("")||'<div class="empty">अभी कोई Reel नहीं है।</div>';(data||[]).forEach(p=>countLikes(p.id));
 }
- }
 async function showProfile(userId=currentUser.id){
  const id=userId||currentUser.id,request=++profileRequest,isMe=id===currentUser.id;
  const {data:user,error}=await db.from("profiles").select("*").eq("id",id).maybeSingle();
