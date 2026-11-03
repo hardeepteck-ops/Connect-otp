@@ -396,18 +396,7 @@ const following=(followRows||[]).filter(
 ).length;
 
   const isMe=id===currentUser.id;
-  let isFollowing=false;
-
-  if(!isMe){
-   const {data:f,error:e3}=await db.from("follows")
-    .select("id")
-    .eq("follower_id",currentUser.id)
-    .eq("following_id",id)
-    .maybeSingle();
-
-   if(e3) throw e3;
-   isFollowing=!!f;
-  }
+const isFollowing=false;
 
   box.innerHTML=`
    <div class="profiletop">
