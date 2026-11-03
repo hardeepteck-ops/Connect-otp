@@ -367,77 +367,80 @@ async function showProfile(id){
   document.getElementById(p+"Page").classList.toggle("hidden",p!=="profile");
  });
 
- box.innerHTML="Loading Profile...";
+ box.innerHTML="Profile लोड हो रही है...";
 
- const {data:u,error}=await db.from("profiles")
- .select("*").eq("id",id).maybeSingle();
+ try{
+  box.innerHTML="Profile जानकारी लोड हो रही है...";
 
- if(error||!u){
-  box.innerHTML="Profile नहीं मिला";
-  return;
- }
+  const {data:u,error}=await db.from("profiles")
+   .select("*").eq("id",id).maybeSingle();
 
- const {data:posts,error:postError}=await db.from("posts")
- .select("*").eq("user_id",id)
- .order("created_at",{ascending:false});
+  if(error) throw error;
+  if(!u) throw new Error("इस User की Profile नहीं मिली");
 
- if(postError){
-  box.innerHTML=postError.message;
-  return;
- }
+  box.innerHTML="Posts लोड हो रही हैं...";
 
- const {count:followers}=await db.from("follows")
- .select("*",{count:"exact",head:true})
- .eq("following_id",id);
+  const {data:posts,error:postError}=await db.from("posts")
+   .select("*").eq("user_id",id)
+   .order("created_at",{ascending:false});
 
- const {count:following}=await db.from("follows")
- .select("*",{count:"exact",head:true})
- .eq("follower_id",id);
+  if(postError) throw postError;
 
- const isMe=id===currentUser.id;
- let isFollowing=false;
+  box.innerHTML="Followers जानकारी लोड हो रही है...";
 
- if(!isMe){
-  const {data:f,error:fError}=await db.from("follows")
-  .select("id")
-  .eq("follower_id",currentUser.id)
-  .eq("following_id",id)
-  .maybeSingle();
+  const {count:followers,error:e1}=await db.from("follows")
+   .select("*",{count:"exact",head:true})
+   .eq("following_id",id);
 
-  if(fError){
-   box.innerHTML=fError.message;
-   return;
+  if(e1) throw e1;
+
+  const {count:following,error:e2}=await db.from("follows")
+   .select("*",{count:"exact",head:true})
+   .eq("follower_id",id);
+
+  if(e2) throw e2;
+
+  const isMe=id===currentUser.id;
+  let isFollowing=false;
+
+  if(!isMe){
+   const {data:f,error:e3}=await db.from("follows")
+    .select("id")
+    .eq("follower_id",currentUser.id)
+    .eq("following_id",id)
+    .maybeSingle();
+
+   if(e3) throw e3;
+   isFollowing=!!f;
   }
 
-  isFollowing=!!f;
+  box.innerHTML=`
+   <div class="profiletop">
+    <img src="${u.avatar_url||"https://placehold.co/100"}">
+    <h2>${escapeHTML(u.full_name||u.username||"User")}</h2>
+    <p>@${escapeHTML(u.username||"user")}</p>
+    <p>${escapeHTML(u.bio||"")}</p>
+    <div>
+     <b>${posts.length}</b> Posts　
+     <b>${followers||0}</b> Followers　
+     <b>${following||0}</b> Following
+    </div>
+    ${isMe
+     ? '<button class="primary" onclick="editProfile()">Edit Profile</button>'
+     : `<button class="primary" onclick="toggleFollow('${id}')">${isFollowing?"Following":"Follow"}</button>`
+    }
+   </div>
+   <div class="grid">
+    ${posts.map(p=>p.media_type==="video"
+     ? `<video src="${p.media_url}" controls></video>`
+     : `<img src="${p.media_url}">`
+    ).join("")}
+   </div>`;
+
+ }catch(error){
+  console.error("Profile Error:",error);
+  box.innerHTML="Profile खोलने में समस्या: "+escapeHTML(error.message||String(error));
  }
-
- box.innerHTML=`
- <div class="profiletop">
- <img src="${u.avatar_url||"https://placehold.co/100"}">
- <h2>${escapeHTML(u.full_name||u.username||"User")}</h2>
- <p>@${escapeHTML(u.username||"user")}</p>
- <p>${escapeHTML(u.bio||"")}</p>
-
- <div>
- <b>${posts?.length||0}</b> Posts　
- <b>${followers||0}</b> Followers　
- <b>${following||0}</b> Following
- </div>
-
- ${isMe
- ? '<button class="primary" onclick="editProfile()">Edit Profile</button>'
- : `<button class="primary" onclick="toggleFollow('${id}')">${isFollowing?"Following":"Follow"}</button>`
- }
- </div>
-
- <div class="grid">
- ${(posts||[]).map(p=>
-  p.media_type==="video"
-  ? `<video src="${p.media_url}" controls></video>`
-  : `<img src="${p.media_url}">`
- ).join("")}
- </div>`;
 }
 
 async function toggleFollow(id){
