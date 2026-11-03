@@ -388,14 +388,8 @@ async function showProfile(id){
 
   box.innerHTML="Followers जानकारी लोड हो रही है...";
 
-const {data:followRows,error:followError}=await db.from("follows")
- .select("follower_id,following_id");
-
-if(followError) throw followError;
-
-const followers=(followRows||[]).filter(
- f=>f.following_id===id
-).length;
+const followers=0;
+const following=0;
 
 const following=(followRows||[]).filter(
  f=>f.follower_id===id
