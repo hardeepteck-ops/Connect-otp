@@ -360,71 +360,118 @@ reelsFeed.innerHTML=(data||[]).map(postHTML).join("")||
 (data||[]).forEach(p=>countLikes(p.id));
 }
 
-async function showProfile(id){
- const box=document.getElementById("profileContent");
+async function showProfile(id) {
+  const box = document.getElementById("profileContent");
 
- ["home","search","create","reels","profile"].forEach(p=>{
-  document.getElementById(p+"Page").classList.toggle("hidden",p!=="profile");
- });
-
- box.innerHTML="Profile लोड हो रही है...";
-
- try{
-  box.innerHTML="Profile जानकारी लोड हो रही है...";
-
-  const {data:u,error}=await db.from("profiles")
-   .select("*").eq("id",id).maybeSingle();
-
-  if(error) throw error;
-  if(!u) throw new Error("इस User की Profile नहीं मिली");
-
-  box.innerHTML="Posts लोड हो रही हैं...";
-
-  const {data:posts,error:postError}=await db.from("posts")
-   .select("*").eq("user_id",id)
-   .order("created_at",{ascending:false});
-
-  if(postError) throw postError;
-
-  box.innerHTML="Followers जानकारी लोड हो रही है...";
-
-const followers=0;
-const following=0;
-
-const following=(followRows||[]).filter(
- f=>f.follower_id===id
-).length;
-
-  const isMe=id===currentUser.id;
-const isFollowing=false;
-
-  box.innerHTML=`
-   <div class="profiletop">
-    <img src="${u.avatar_url||"https://placehold.co/100"}">
-    <h2>${escapeHTML(u.full_name||u.username||"User")}</h2>
-    <p>@${escapeHTML(u.username||"user")}</p>
-    <p>${escapeHTML(u.bio||"")}</p>
-    <div>
-     <b>${posts.length}</b> Posts　
-     <b>${followers||0}</b> Followers　
-     <b>${following||0}</b> Following
-    </div>
-    ${isMe
-     ? '<button class="primary" onclick="editProfile()">Edit Profile</button>'
-     : `<button class="primary" onclick="toggleFollow('${id}')">${isFollowing?"Following":"Follow"}</button>`
+  ["home", "search", "create", "reels", "profile"].forEach(p => {
+    const page = document.getElementById(p + "Page");
+    if (page) {
+      page.classList.toggle("hidden", p !== "profile");
     }
-   </div>
-   <div class="grid">
-    ${posts.map(p=>p.media_type==="video"
-     ? `<video src="${p.media_url}" controls></video>`
-     : `<img src="${p.media_url}">`
-    ).join("")}
-   </div>`;
+  });
 
- }catch(error){
-  console.error("Profile Error:",error);
-  box.innerHTML="Profile खोलने में समस्या: "+escapeHTML(error.message||String(error));
- }
+  box.innerHTML = "Profile लोड हो रही है...";
+
+  try {
+    const { data: u, error } = await db
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!u) throw new Error("इस User की Profile नहीं मिली");
+
+    box.innerHTML = "Posts लोड हो रही हैं...";
+
+    const { data: posts, error: postError } = await db
+      .from("posts")
+      .select("*")
+      .eq("user_id", id)
+      .order("created_at", { ascending: false });
+
+    if (postError) throw postError;
+
+    const { count: followers, error: followersError } = await db
+      .from("follows")
+      .select("*", { count: "exact", head: true })
+      .eq("following_id", id);
+
+    if (followersError) throw followersError;
+
+    const { count: following, error: followingError } = await db
+      .from("follows")
+      .select("*", { count: "exact", head: true })
+      .eq("follower_id", id);
+
+    if (followingError) throw followingError;
+
+    const { data: followData, error: followError } = await db
+      .from("follows")
+      .select("id")
+      .eq("follower_id", currentUser.id)
+      .eq("following_id", id)
+      .maybeSingle();
+
+    if (followError) throw followError;
+
+    const isMe = id === currentUser.id;
+    const isFollowing = !!followData;
+
+    box.innerHTML = `
+      <div class="profiletop">
+        <img
+          class="profilepic"
+          src="${esc(u.avatar_url || "https://placehold.co/100")}"
+        >
+
+        <h2>${esc(u.full_name || u.username || "User")}</h2>
+        <p>@${esc(u.username || "user")}</p>
+        <p>${esc(u.bio || "")}</p>
+
+        <div class="stats">
+          <div>
+            <b>${posts.length}</b>
+            Posts
+          </div>
+
+          <div>
+            <b>${followers || 0}</b>
+            Followers
+          </div>
+
+          <div>
+            <b>${following || 0}</b>
+            Following
+          </div>
+        </div>
+
+        <div class="profilebuttons">
+          ${
+            isMe
+              ? '<button class="primary" onclick="alert(\'Edit Profile बाद में जोड़ेंगे\')">Edit Profile</button>'
+              : `<button class="primary" onclick="toggleFollow('${id}')">
+                   ${isFollowing ? "Following" : "Follow"}
+                 </button>`
+          }
+        </div>
+      </div>
+
+      <div class="grid">
+        ${
+          posts.map(p =>
+            p.media_type === "video"
+              ? `<video src="${esc(p.media_url)}" controls></video>`
+              : `<img src="${esc(p.media_url)}">`
+          ).join("")
+        }
+      </div>
+    `;
+
+  } catch (error) {
+    console.error("Profile Error:", error);
+    box.innerHTML = "Profile Error: " + esc(error.message || String(error));
+  }
 }
 
 async function toggleFollow(id){
