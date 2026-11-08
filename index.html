@@ -555,49 +555,102 @@ async function loadReels(){
  (data||[]).forEach(p=>countLikes(p.id));
   }
  async function showProfile(userId){
- const targetId=userId||currentUser.id;
+ if(!currentUser){
+  alert("पहले Login करें");
+  return;
+ }
+
+ const id=userId||currentUser.id;
+ const request=++profileRequest;
+ const isMe=id===currentUser.id;
 
  const {data:user,error}=await db.from("profiles")
   .select("*")
-  .eq("id",targetId)
+  .eq("id",id)
   .maybeSingle();
 
+ if(request!==profileRequest)return;
+
  if(error||!user){
-  return alert(error?.message||"Profile नहीं मिली");
+  alert(error?.message||"Profile नहीं मिली");
+  return;
  }
+
+ const [{count:postsCount},{count:followers},{count:following}]=
+ await Promise.all([
+  db.from("posts").select("*",{count:"exact",head:true}).eq("user_id",id),
+  db.from("follows").select("*",{count:"exact",head:true}).eq("following_id",id),
+  db.from("follows").select("*",{count:"exact",head:true}).eq("follower_id",id)
+ ]);
+
+ let followed=false;
+
+ if(!isMe){
+  const {data:f}=await db.from("follows")
+   .select("id")
+   .eq("follower_id",currentUser.id)
+   .eq("following_id",id)
+   .maybeSingle();
+
+  followed=!!f;
+ }
+
+ if(isMe)currentProfile=user;
+
+ $("profileContent").innerHTML=`
+  <div class="profiletop">
+   <img class="profileavatar" src="${esc(user.avatar_url||placeholder)}">
+   <h2>${esc(user.username||"User")}</h2>
+   <p>${esc(user.full_name||"")}</p>
+  </div>
+
+  <div class="profilecounts">
+   <span><b>${postsCount||0}</b>Posts</span>
+   <span onclick="showFollowList('followers','${id}')">
+    <b>${followers||0}</b>Followers
+   </span>
+   <span onclick="showFollowList('following','${id}')">
+    <b>${following||0}</b>Following
+   </span>
+  </div>
+
+  <p>${esc(user.bio||"")}</p>
+
+  <div class="profilebuttons">
+   ${isMe
+    ?'<button class="secondary" onclick="editProfile()">Edit Profile</button>'
+    :`<button class="primary" onclick="toggleFollow('${id}')">${followed?"Following":"Follow"}</button>`}
+  </div>
+
+  <div id="userPosts" class="profilegrid"></div>
+ `;
+
+ $("profilePage").classList.remove("hidden");
+
+ ["home","search","create","storyCreate","reels","notifications"]
+ .forEach(p=>$(p+"Page").classList.add("hidden"));
 
  activePage="profile";
 
- $("profileUsername").innerText=user.username||"User";
- $("profileName").innerText=user.full_name||"";
- $("profileBio").innerText=user.bio||"";
- $("profileAvatar").src=user.avatar_url||placeholder;
-
- $("editProfileBtn").classList.toggle(
-  "hidden",targetId!==currentUser.id
- );
-
- $("followBtn").classList.toggle(
-  "hidden",targetId===currentUser.id
- );
-
- $("profilePosts").innerHTML="Loading...";
-
- const {data:posts,error:postError}=await db.from("posts")
+ const {data:posts,error:e}=await db.from("posts")
   .select("*")
-  .eq("user_id",targetId)
+  .eq("user_id",id)
   .order("created_at",{ascending:false});
 
- if(postError){
-  $("profilePosts").innerText=postError.message;
- }else{
-  $("profilePosts").innerHTML=(posts||[]).map(p=>
-   `<div class="profilePost" onclick="openProfilePost('${p.id}')">
-    ${p.media_type==="video"
-     ?`<video src="${esc(p.media_url)}" muted></video>`
-     :`<img src="${esc(p.media_url)}">`}
-   </div>`
-  ).join("")||"अभी कोई पोस्ट नहीं है";
+ if(request!==profileRequest)return;
+
+ if(e){
+  $("userPosts").innerText=e.message;
+  return;
+ }
+
+ $("userPosts").innerHTML=(posts||[]).map(p=>
+  `<div class="gridpost" onclick="openProfilePost('${p.id}')">
+   ${p.media_type==="video"
+    ?`<video src="${esc(p.media_url)}"></video>`
+    :`<img src="${esc(p.media_url)}">`}
+  </div>`
+ ).join("")||'<p class="muted">अभी कोई पोस्ट नहीं है।</p>';
  }
 
  await loadFollowCounts(targetId);
