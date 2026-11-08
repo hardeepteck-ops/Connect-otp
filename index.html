@@ -48,6 +48,7 @@ function msg(t){$("authMsg").innerText=t;}
 function showSignup(){$("loginBox").classList.add("hidden");$("signupBox").classList.remove("hidden");}
 function showLogin(){$("signupBox").classList.add("hidden");$("loginBox").classList.remove("hidden");}
 $("toSignup").onclick=showSignup;$("toLogin").onclick=showLogin;
+ $("loginBtn").onclick=()=>alert("Login Button Working");
 $("loginBtn").onclick=login;$("signupBtn").onclick=signup;$("logoutBtn").onclick=logout;
 document.querySelectorAll(".bottom button").forEach(b=>b.onclick=()=>go(b.dataset.page));
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.add("hidden"));
